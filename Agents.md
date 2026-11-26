@@ -16,7 +16,7 @@ Read the specific doc before touching that area: `api.md`, `security.md`, `testi
 - **One branch only: `main`.** Never create, push or merge other branches.
 - **Repo size under 10 MB.** No binaries, datasets, videos, `node_modules`, `.venv` or large images. Use SVG or CSS for visuals.
 - **The repo is public:** never commit secrets. The API key lives only in `.env`, which is git-ignored.
-- **GenAI is mandatory:** the AI features go through the Google Gemini API (`gemini-2.5-flash`, free tier).
+- **GenAI is mandatory:** the AI features go through the Google Gemini API (`gemini-3.8-flash`, free tier).
 
 ## Core design principle
 

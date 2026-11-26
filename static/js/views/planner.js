@@ -3,6 +3,7 @@ import { api } from "../api.js";
 import { h, render } from "../dom.js";
 import { householdPayload, membersPayload, store } from "../store.js";
 import {
+  ACTIVITY_LABELS,
   adviceBadge,
   categoryBadge,
   MODE_LABELS,
@@ -85,7 +86,7 @@ function planView(plan, previous) {
         return h(
           "li",
           { class: "card" },
-          h("div", { class: "item-row" }, h("h3", { class: "card__title" }, `${r.activity}: ${r.start}–${r.end}`), adviceBadge(r.advice)),
+          h("div", { class: "item-row" }, h("h3", { class: "card__title" }, `${activityLabel(r.activity)}: ${r.start}–${r.end}`), adviceBadge(r.advice)),
           changed ? h("p", { class: "tag-updated" }, "Updated: the forecast changed") : null,
           h("p", { class: "why" }, r.why),
           r.impact ? h("p", { class: "impact" }, r.impact) : null,
@@ -162,7 +163,7 @@ function memberCard(m, person) {
           "div",
           { class: "member-block" },
           h("h4", {}, "Best times today"),
-          h("ul", { class: "mini-list" }, m.routine.map((r) => h("li", {}, h("span", { class: "item-row" }, h("strong", {}, `${r.activity} · ${r.start}–${r.end}`), adviceBadge(r.advice)), h("span", { class: "muted small" }, r.impact || r.why)))),
+          h("ul", { class: "mini-list" }, m.routine.map((r) => h("li", {}, h("span", { class: "item-row" }, h("strong", {}, `${activityLabel(r.activity)} · ${r.start}–${r.end}`), adviceBadge(r.advice)), h("span", { class: "muted small" }, r.impact || r.why)))),
         )
       : null,
     m.commute
@@ -202,4 +203,9 @@ function memberCard(m, person) {
   );
   update();
   return card;
+}
+
+/** Friendly name for an activity key ("jog" -> "Jog or run"); AI text passes through. */
+function activityLabel(name) {
+  return ACTIVITY_LABELS[String(name).toLowerCase()] ?? name;
 }

@@ -15,7 +15,7 @@ How Airly uses Gemini. (Rules for AI *coding* assistants are in `/Agents.md`.)
 | Setting | Value | Notes |
 |---|---|---|
 | SDK | `google-genai` (official Google Gen AI SDK), async client (`client.aio.models`) | Server-side only |
-| Model | `gemini-2.5-flash` (set with `GEMINI_MODEL`) | Free tier in Google AI Studio |
+| Model | `gemini-3.8-flash` (set with `GEMINI_MODEL`), then backups `gemini-3.5-flash-lite`, `gemini-3.1-flash-lite` (`GEMINI_FALLBACK_MODELS`) | Free tier in Google AI Studio. A model that is retired (404), rate-limited (429) or overloaded (500/503) is skipped for 2 minutes and the next one is tried |
 | Structured outputs | `response_mime_type="application/json"` + `response_json_schema` for plan and simulator | Validated again with Pydantic |
 | Tools | Chat only; `function_declarations` with JSON Schema parameters | Our code runs the tool loop (`automatic_function_calling` disabled) |
 | Output limit | Chat 4,096 · Plan 12,000 · Simulator 4,096 tokens | Room for the model's internal reasoning; bounded for abuse control |

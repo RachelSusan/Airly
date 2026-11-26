@@ -1,8 +1,8 @@
-# Tasks and Progress: Airly
+﻿# Tasks and Progress: Airly
 
-Deadline: **29 Nov 2026, 11:59 PM IST** · Submissions: at most 3 · Video mandatory
+Deadline: **29 Nov 2026, 11:59 PM IST** Â· Submissions: at most 3 Â· Video mandatory
 
-Legend: `[ ]` to do · `[x]` done · `[~]` in progress
+Legend: `[ ]` to do Â· `[x]` done Â· `[~]` in progress
 
 ## Day 1: 26 Nov: Foundations
 - [x] Project docs (README, Agents, CLAUDE, PRD, design system, architecture, database, API, security, accessibility, code style, testing, AI prompts, impact methodology, deployment, tasks)
@@ -23,18 +23,18 @@ Legend: `[ ]` to do · `[x]` done · `[~]` in progress
 - [x] Frontend: tokens and base CSS, dashboard, planner, family profiles, checklist, chat, simulator
 - [~] Accessibility pass: labels, live regions, skip link, text + icon badges, mobile reflow done; NVDA and Lighthouse checks pending
 - [x] Neighbourhood air map (OpenStreetMap + modelled AQI grid), location chip on every location-based view
-- [x] Light, calm, green theme; before/after CO₂ chart in the simulator
+- [x] Light, calm, green theme; before/after COâ‚‚ chart in the simulator
 - [x] Professional redesign (floating glass nav, photo hero, olive accent, Manrope); animation removed
 - [x] Family: relationship, travel and school per member; personal plans per member in the Day planner
-- [ ] Test the AI path with a real `GEMINI_API_KEY` (all AI paths verified with mocks only so far)
+- [x] Tested the AI path live with a real `GEMINI_API_KEY`: chat (tool calls), planner and simulator all answered by Gemini; busy models fall back automatically
 - [ ] Deploy (platform decision)
 - [ ] **Submission 1** (baseline, all modules working)
 
 ## Day 3: 28 Nov: Polish and proof
 - [ ] Verify every emission factor and its source (`impact_methodology.md`)
 - [ ] School activity planner and auto-refresh change highlights
-- [ ] Security checklist (`security.md` §11) and `pip-audit`
-- [ ] Coverage ≥ 80%; Lighthouse a11y ≥ 95
+- [ ] Security checklist (`security.md` Â§11) and `pip-audit`
+- [ ] Coverage â‰¥ 80%; Lighthouse a11y â‰¥ 95
 - [ ] README final: screenshots (small), live link, assumptions
 - [ ] Record the demo video (follow the manual demo script in `testing.md`)
 - [ ] **Submission 2** with video

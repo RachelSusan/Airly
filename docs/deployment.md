@@ -5,7 +5,7 @@
 | Variable | Required | Default | Description |
 |---|---|---|---|
 | `GEMINI_API_KEY` | Yes (for AI features) | none | Gemini API key (free from Google AI Studio). **Never commit.** Without it, the app runs in rules-only mode |
-| `GEMINI_MODEL` | No | `gemini-2.5-flash` | Model ID |
+| `GEMINI_MODEL` | No | `gemini-3.8-flash` | Model ID |
 | `APP_ENV` | No | `development` | `development` or `production` (production turns off `/docs` and turns on HSTS) |
 | `LOG_LEVEL` | No | `INFO` | Logging level |
 | `AIR_CACHE_TTL_SECONDS` | No | `900` | Air-data cache TTL |

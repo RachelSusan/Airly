@@ -70,6 +70,7 @@ DEFAULT_GRID = [
 class FakeAPIError(genai_errors.APIError):
     def __init__(self) -> None:  # skip SDK constructor (needs a real response)
         Exception.__init__(self, "boom")
+        self.code = 400  # a request error that switching models would not fix
 
 
 def _candidate(parts: list[Any], finish: str) -> SimpleNamespace:

@@ -122,3 +122,55 @@ def test_plan_schema_is_closed_and_fully_required() -> None:
 
     walk(PLAN_SCHEMA)
     assert strict_schema(PlanContent) == PLAN_SCHEMA
+
+
+class _BusyError(FakeAPIError):
+    def __init__(self, code: int) -> None:
+        super().__init__()
+        self.code = code
+
+
+async def test_busy_model_falls_through_to_backup_and_cools_down() -> None:
+    now = [0.0]
+    models = FakeModels(
+        _BusyError(503), text_response('{"a": "from backup"}'), text_response('{"a": "again"}')
+    )
+    client = GeminiClient(models, "main", ["backup"], clock=lambda: now[0])
+    first = await client.generate_json(system="S", prompt="P", schema=SCHEMA, max_tokens=10)
+    assert first == {"a": "from backup"}
+    assert [r["model"] for r in models.requests] == ["main", "backup"]
+    # While cooling down, the busy model is skipped entirely
+    await client.generate_json(system="S", prompt="P", schema=SCHEMA, max_tokens=10)
+    assert models.requests[-1]["model"] == "backup"
+
+
+async def test_busy_model_is_retried_after_cooldown() -> None:
+    now = [0.0]
+    models = FakeModels(_BusyError(429), text_response('{"a": "1"}'), text_response('{"a": "2"}'))
+    client = GeminiClient(models, "main", ["backup"], clock=lambda: now[0])
+    await client.generate_json(system="S", prompt="P", schema=SCHEMA, max_tokens=10)
+    now[0] = 1000.0
+    await client.generate_json(system="S", prompt="P", schema=SCHEMA, max_tokens=10)
+    assert models.requests[-1]["model"] == "main"
+
+
+async def test_all_models_busy_raises() -> None:
+    models = FakeModels(_BusyError(503), _BusyError(404))
+    client = GeminiClient(models, "main", ["backup"])
+    with pytest.raises(AIUnavailableError, match="busy"):
+        await client.generate_json(system="S", prompt="P", schema=SCHEMA, max_tokens=10)
+
+
+async def test_other_client_errors_do_not_switch_models() -> None:
+    models = FakeModels(_BusyError(400))
+    client = GeminiClient(models, "main", ["backup"])
+    with pytest.raises(AIUnavailableError, match="request failed"):
+        await client.generate_json(system="S", prompt="P", schema=SCHEMA, max_tokens=10)
+    assert len(models.requests) == 1
+
+
+def test_fallback_models_setting_is_parsed() -> None:
+    settings = Settings(gemini_api_key="k", gemini_fallback_models=" a, b ,,")
+    assert settings.fallback_models == ["a", "b"]
+    client = build_ai_client(settings)
+    assert client is not None and client.models[1:] == ["a", "b"]

@@ -17,7 +17,9 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     gemini_api_key: SecretStr | None = None
-    gemini_model: str = "gemini-2.5-flash"
+    gemini_model: str = "gemini-3.8-flash"
+    # Comma-separated models to try when the main one is busy, rate-limited or retired.
+    gemini_fallback_models: str = "gemini-3.5-flash-lite,gemini-3.1-flash-lite"
     app_env: Literal["development", "production"] = "development"
     log_level: str = "INFO"
     air_cache_ttl_seconds: int = Field(default=900, ge=60, le=3600)
@@ -27,6 +29,11 @@ class Settings(BaseSettings):
     def is_production(self) -> bool:
         """True when running in production (docs off, HSTS on)."""
         return self.app_env == "production"
+
+    @property
+    def fallback_models(self) -> list[str]:
+        """Backup model names, in the order they are tried."""
+        return [m.strip() for m in self.gemini_fallback_models.split(",") if m.strip()]
 
     @property
     def ai_enabled(self) -> bool:

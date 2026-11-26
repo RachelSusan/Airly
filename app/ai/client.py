@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 from collections.abc import Callable, Sequence
 from typing import Any, Protocol
 
@@ -21,6 +22,10 @@ from app.config import Settings
 logger = logging.getLogger(__name__)
 
 REQUEST_TIMEOUT_MS = 30_000
+# Errors meaning "this model can't serve us right now": not found / retired, quota or rate
+# limit, overloaded. On these we try the next model in the list.
+SWITCH_MODEL_CODES = frozenset({404, 429, 500, 503})
+COOLDOWN_SECONDS = 120.0
 BLOCKED_REASONS = frozenset(
     {
         types.FinishReason.SAFETY,
@@ -50,9 +55,18 @@ class ModelsAPI(Protocol):
 class GeminiClient:
     """Calls Gemini for structured JSON answers and for tool-using chat."""
 
-    def __init__(self, models_api: ModelsAPI, model: str) -> None:
+    def __init__(
+        self,
+        models_api: ModelsAPI,
+        model: str,
+        fallback_models: Sequence[str] = (),
+        clock: Callable[[], float] = time.monotonic,
+    ) -> None:
         self._api = models_api
         self.model = model
+        self.models = [model, *(m for m in fallback_models if m and m != model)]
+        self._clock = clock
+        self._cooling: dict[str, float] = {}  # model -> time it may be tried again
 
     async def generate_json(
         self, *, system: str, prompt: str, schema: dict[str, Any], max_tokens: int
@@ -132,13 +146,7 @@ class GeminiClient:
         raise AIUnavailableError("Too many tool rounds")
 
     async def _call(self, contents: Any, config: types.GenerateContentConfig) -> Any:
-        try:
-            response = await self._api.generate_content(
-                model=self.model, contents=contents, config=config
-            )
-        except (genai_errors.APIError, httpx2.HTTPError, TimeoutError, OSError) as exc:
-            logger.warning("gemini_error type=%s", type(exc).__name__)
-            raise AIUnavailableError("Model request failed") from exc
+        response = await self._generate(contents, config)
 
         candidates = getattr(response, "candidates", None) or []
         if not candidates:
@@ -149,6 +157,32 @@ class GeminiClient:
         if reason == types.FinishReason.MAX_TOKENS:
             raise AIUnavailableError("Model response was cut off")
         return response
+
+    async def _generate(self, contents: Any, config: types.GenerateContentConfig) -> Any:
+        """Try each model in order, skipping ones that were busy recently.
+
+        A model that is retired, rate-limited or overloaded is put on a short cooldown and
+        the next model is tried, so one busy model doesn't slow every request.
+        """
+        now = self._clock()
+        ready = [m for m in self.models if self._cooling.get(m, 0.0) <= now]
+        for model in ready or self.models:
+            try:
+                return await self._api.generate_content(
+                    model=model, contents=contents, config=config
+                )
+            except genai_errors.APIError as exc:
+                code = getattr(exc, "code", None)
+                if code in SWITCH_MODEL_CODES:
+                    logger.warning("gemini_model_busy model=%s code=%s", model, code)
+                    self._cooling[model] = self._clock() + COOLDOWN_SECONDS
+                    continue
+                logger.warning("gemini_error type=%s code=%s", type(exc).__name__, code)
+                raise AIUnavailableError("Model request failed") from exc
+            except (httpx2.HTTPError, TimeoutError, OSError) as exc:
+                logger.warning("gemini_error type=%s", type(exc).__name__)
+                raise AIUnavailableError("Model request failed") from exc
+        raise AIUnavailableError("All models are busy or unavailable")
 
 
 def _declaration(tool: dict[str, Any]) -> types.FunctionDeclaration:
@@ -178,4 +212,4 @@ def build_ai_client(settings: Settings) -> GeminiClient | None:
         api_key=settings.gemini_api_key.get_secret_value(),
         http_options=types.HttpOptions(timeout=REQUEST_TIMEOUT_MS),
     )
-    return GeminiClient(sdk.aio.models, settings.gemini_model)
+    return GeminiClient(sdk.aio.models, settings.gemini_model, settings.fallback_models)
