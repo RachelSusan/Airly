@@ -8,7 +8,6 @@ from typing import Literal
 from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
 PLACEHOLDER_API_KEY = "your-anthropic-api-key-here"  # value shipped in .env.example
 
 
