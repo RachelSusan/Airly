@@ -86,6 +86,22 @@ Open http://localhost:8000. Run the tests with `pytest`.
 | [Code style](docs/code_style.md) | Conventions |
 | [Deployment](docs/deployment.md) | Running and deploying |
 
+## Credits
+
+City photos are from [Unsplash](https://unsplash.com) under the [Unsplash License](https://unsplash.com/license), resized and stored in `static/img/cities/`:
+
+| City | Photographer |
+|---|---|
+| Delhi (India Gate) | [@shalender](https://unsplash.com/@shalender) |
+| Mumbai (Gateway of India) | [@renzods](https://unsplash.com/@renzods) |
+| Kolkata (Howrah Bridge) | [@suprabhatmondal](https://unsplash.com/@suprabhatmondal) |
+| Hyderabad (Charminar) | [@neesh774](https://unsplash.com/@neesh774) |
+| Bengaluru (skyline) | [@ittina](https://unsplash.com/@ittina) |
+| Chennai (Central station) | [@angelphotos](https://unsplash.com/@angelphotos) |
+| Other cities (green city view) | [@bendp](https://unsplash.com/@bendp) |
+
+Maps © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors, drawn with [Leaflet](https://leafletjs.com).
+
 ## Disclaimer
 
 BreatheWise gives general guidance about air pollution. It is not a substitute for medical advice. People with respiratory or heart conditions should follow their doctor's guidance.

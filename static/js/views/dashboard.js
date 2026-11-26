@@ -18,7 +18,12 @@ export async function renderDashboard(root, state) {
   render(root, h("div", { class: "skeleton", "aria-busy": "true", "aria-label": "Loading air quality" }));
   try {
     const data = await api.air(state.location);
-    updateScene({ city: state.location.name, category: data.current.category, label: data.current.label });
+    updateScene({
+      city: state.location.name,
+      category: data.current.category,
+      label: data.current.label,
+      aqi: data.current.aqi,
+    });
     render(root, view(data, state));
   } catch (error) {
     render(root, h("p", { class: "alert alert--error", role: "alert" }, error.message));
