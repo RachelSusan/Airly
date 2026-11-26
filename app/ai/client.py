@@ -6,6 +6,7 @@ becomes ``AIUnavailableError`` so callers can switch to the rules fallback in on
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import time
@@ -21,10 +22,11 @@ from app.config import Settings
 
 logger = logging.getLogger(__name__)
 
-REQUEST_TIMEOUT_MS = 30_000
-# Errors meaning "this model can't serve us right now": not found / retired, quota or rate
-# limit, overloaded. On these we try the next model in the list.
-SWITCH_MODEL_CODES = frozenset({404, 429, 500, 503})
+REQUEST_TIMEOUT_S = 15.0  # per model attempt; a slow model is abandoned for the next one
+TOTAL_BUDGET_S = 40.0  # across all attempts for one call, so users never wait too long
+# Errors meaning "this model can't serve us right now": retired, quota or rate limit,
+# overloaded or timing out. On these (and on timeouts) we try the next model in the list.
+SWITCH_MODEL_CODES = frozenset({404, 429, 500, 502, 503, 504})
 COOLDOWN_SECONDS = 120.0
 BLOCKED_REASONS = frozenset(
     {
@@ -164,25 +166,33 @@ class GeminiClient:
         A model that is retired, rate-limited or overloaded is put on a short cooldown and
         the next model is tried, so one busy model doesn't slow every request.
         """
-        now = self._clock()
-        ready = [m for m in self.models if self._cooling.get(m, 0.0) <= now]
+        start = self._clock()
+        ready = [m for m in self.models if self._cooling.get(m, 0.0) <= start]
         for model in ready or self.models:
+            remaining = TOTAL_BUDGET_S - (self._clock() - start)
+            if remaining <= 1:
+                break
             try:
-                return await self._api.generate_content(
-                    model=model, contents=contents, config=config
+                return await asyncio.wait_for(
+                    self._api.generate_content(model=model, contents=contents, config=config),
+                    timeout=min(REQUEST_TIMEOUT_S, remaining),
                 )
             except genai_errors.APIError as exc:
                 code = getattr(exc, "code", None)
-                if code in SWITCH_MODEL_CODES:
-                    logger.warning("gemini_model_busy model=%s code=%s", model, code)
-                    self._cooling[model] = self._clock() + COOLDOWN_SECONDS
-                    continue
-                logger.warning("gemini_error type=%s code=%s", type(exc).__name__, code)
-                raise AIUnavailableError("Model request failed") from exc
-            except (httpx2.HTTPError, TimeoutError, OSError) as exc:
+                if code not in SWITCH_MODEL_CODES:
+                    logger.warning("gemini_error type=%s code=%s", type(exc).__name__, code)
+                    raise AIUnavailableError("Model request failed") from exc
+                self._cool_down(model, f"code={code}")
+            except (TimeoutError, httpx2.TimeoutException):
+                self._cool_down(model, "timeout")
+            except (httpx2.HTTPError, OSError) as exc:
                 logger.warning("gemini_error type=%s", type(exc).__name__)
                 raise AIUnavailableError("Model request failed") from exc
         raise AIUnavailableError("All models are busy or unavailable")
+
+    def _cool_down(self, model: str, why: str) -> None:
+        logger.warning("gemini_model_busy model=%s %s", model, why)
+        self._cooling[model] = self._clock() + COOLDOWN_SECONDS
 
 
 def _declaration(tool: dict[str, Any]) -> types.FunctionDeclaration:
@@ -210,6 +220,6 @@ def build_ai_client(settings: Settings) -> GeminiClient | None:
         return None
     sdk = genai.Client(
         api_key=settings.gemini_api_key.get_secret_value(),
-        http_options=types.HttpOptions(timeout=REQUEST_TIMEOUT_MS),
+        http_options=types.HttpOptions(timeout=int(REQUEST_TIMEOUT_S * 1000)),
     )
     return GeminiClient(sdk.aio.models, settings.gemini_model, settings.fallback_models)

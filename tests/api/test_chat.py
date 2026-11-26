@@ -115,3 +115,23 @@ def test_chat_rejects_system_role(make_client: MakeClient) -> None:
     body = _body("Hi")
     body["messages"][0]["role"] = "system"
     assert make_client().post("/api/chat", json=body).status_code == 422
+
+
+def test_chat_rules_answers_which_city(make_client: MakeClient) -> None:
+    body = _body("Which city am I in now?")
+    body["context"]["location"]["name"] = "Mumbai, Maharashtra, India"
+    data = make_client().post("/api/chat", json=body).json()
+    assert data["reply"].startswith(
+        "You're seeing live air quality for Mumbai, Maharashtra, India."
+    )
+
+
+def test_current_conditions_tool_includes_place_name(make_client: MakeClient) -> None:
+    models = FakeModels(
+        tool_response(("t1", "get_current_conditions", {})), text_response("Mumbai.")
+    )
+    body = _body("Where am I?")
+    body["context"]["location"]["name"] = "Mumbai, Maharashtra, India"
+    make_client(models=models).post("/api/chat", json=body)
+    result = tool_results(models.requests[1])[0].response
+    assert result["location"]["name"] == "Mumbai, Maharashtra, India"

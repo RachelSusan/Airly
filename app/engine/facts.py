@@ -79,7 +79,12 @@ def household_sensitivity(members: Sequence[Member], *, children_only: bool = Fa
     return max((sensitivity_for(m.age_group, m.conditions) for m in pool), key=lambda s: s.level)
 
 
-def build_facts(air: AirData, members: Sequence[Member], household: Household) -> HouseholdFacts:
+def build_facts(
+    air: AirData,
+    members: Sequence[Member],
+    household: Household,
+    place_name: str | None = None,
+) -> HouseholdFacts:
     """Compute every number the planner and assistant may use.
 
     Raises:
@@ -101,7 +106,12 @@ def build_facts(air: AirData, members: Sequence[Member], household: Household) -
     )
 
     data: dict[str, Any] = {
-        "location": {"lat": air.lat, "lon": air.lon, "timezone": air.timezone},
+        "location": {
+            "name": place_name,
+            "lat": air.lat,
+            "lon": air.lon,
+            "timezone": air.timezone,
+        },
         "now": _point(current),
         "weather_now": air.current.weather.model_dump(),
         "forecast_summary": {

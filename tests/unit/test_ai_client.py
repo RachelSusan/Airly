@@ -174,3 +174,33 @@ def test_fallback_models_setting_is_parsed() -> None:
     assert settings.fallback_models == ["a", "b"]
     client = build_ai_client(settings)
     assert client is not None and client.models[1:] == ["a", "b"]
+
+
+async def test_gateway_timeout_switches_model() -> None:
+    models = FakeModels(_BusyError(504), text_response('{"a": "ok"}'))
+    client = GeminiClient(models, "main", ["backup"])
+    assert await client.generate_json(system="S", prompt="P", schema=SCHEMA, max_tokens=10) == {
+        "a": "ok"
+    }
+    assert [r["model"] for r in models.requests] == ["main", "backup"]
+
+
+async def test_slow_model_is_abandoned_for_the_next(monkeypatch: pytest.MonkeyPatch) -> None:
+    import asyncio
+
+    from app.ai import client as client_module
+
+    monkeypatch.setattr(client_module, "REQUEST_TIMEOUT_S", 0.05)
+
+    class SlowThenFast(FakeModels):
+        async def generate_content(self, *, model: str, contents: object, config: object):
+            if model == "main":
+                self.requests.append({"model": model})
+                await asyncio.sleep(1)
+            return await super().generate_content(model=model, contents=contents, config=config)
+
+    models = SlowThenFast(text_response('{"a": "fast"}'))
+    client = GeminiClient(models, "main", ["backup"])
+    assert await client.generate_json(system="S", prompt="P", schema=SCHEMA, max_tokens=10) == {
+        "a": "fast"
+    }

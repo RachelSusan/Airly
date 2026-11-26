@@ -25,7 +25,7 @@ async def plan(
 ) -> PlanResponse:
     """Build today's plan for the household from live data."""
     data, _ = await service.get_air_data(body.location.lat, body.location.lon)
-    facts = build_facts(data, body.members, body.household)
+    facts = build_facts(data, body.members, body.household, body.location.name)
     content, source = await generate_plan(facts.data, ai)
     return PlanResponse(
         **content.model_dump(),

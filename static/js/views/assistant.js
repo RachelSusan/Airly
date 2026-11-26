@@ -1,7 +1,7 @@
 // AI Air Quality Assistant chat.
 import { api } from "../api.js";
 import { h, render, uid } from "../dom.js";
-import { householdPayload, membersPayload, store } from "../store.js";
+import { householdPayload, membersPayload, placeName, store } from "../store.js";
 
 const MAX_HISTORY = 20;
 const MAX_CHARS = 1000;
@@ -51,7 +51,7 @@ export function renderAssistant(root) {
       const reply = await api.chat({
         messages: trimmedHistory(),
         context: {
-          location: { lat: state.location.lat, lon: state.location.lon },
+          location: { lat: state.location.lat, lon: state.location.lon, name: placeName(state.location) },
           members: membersPayload(state.members),
           household: householdPayload(state.household),
         },

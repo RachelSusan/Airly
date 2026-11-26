@@ -185,6 +185,12 @@ def chat_reply(question: str, facts: dict[str, Any]) -> str:
     now = facts["now"]
     lead = f"The air now is {now['category']} (AQI {now['aqi']})."
     windows = facts["best_windows"]
+    place = (facts.get("location") or {}).get("name")
+
+    if any(p in q for p in ("which city", "what city", "where am i", "my location", "which place")):
+        if place:
+            return f"You're seeing live air quality for {place}. {lead}"
+        return f"{lead} Your exact place name wasn't shared, only your approximate location."
 
     if any(word in q for word in ("window", "ventilat", "fresh air")):
         v = facts["ventilation"]

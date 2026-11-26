@@ -1,7 +1,7 @@
 // Smart Daily Routine Planner + per-member protection checklists.
 import { api } from "../api.js";
 import { h, render } from "../dom.js";
-import { householdPayload, membersPayload, store } from "../store.js";
+import { householdPayload, membersPayload, placeName, store } from "../store.js";
 import {
   ACTIVITY_LABELS,
   adviceBadge,
@@ -52,7 +52,7 @@ async function load(output, button) {
   output.setAttribute("aria-busy", "true");
   try {
     const plan = await api.plan({
-      location: { lat: state.location.lat, lon: state.location.lon },
+      location: { lat: state.location.lat, lon: state.location.lon, name: placeName(state.location) },
       members: membersPayload(state.members),
       household: householdPayload(state.household),
     });

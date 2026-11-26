@@ -18,8 +18,9 @@ _NO_INPUT = {"type": "object", "properties": {}, "required": [], "additionalProp
 TOOLS: list[dict[str, Any]] = [
     {
         "name": "get_current_conditions",
-        "description": "Current AQI, category, dominant pollutant and weather at the user's "
-        "location, plus the cleanest and worst hours in the next 24 hours.",
+        "description": "The user's location (place name and coordinates), current AQI, "
+        "category, dominant pollutant and weather, plus the cleanest and worst hours in the "
+        "next 24 hours.",
         "parameters": _NO_INPUT,
     },
     {
@@ -93,6 +94,7 @@ def run_tool(name: str, raw_input: Any, facts: HouseholdFacts) -> dict[str, Any]
     try:
         if name == "get_current_conditions":
             return {
+                "location": data["location"],
                 "now": data["now"],
                 "weather_now": data["weather_now"],
                 "forecast_summary": data["forecast_summary"],

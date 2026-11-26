@@ -56,7 +56,7 @@ User + family profile ───────────────────�
 
 ## Tech stack
 
-Python 3.12+ · FastAPI · Pydantic · Google Gemini API (`gemini-3.8-flash`, free tier) · Open-Meteo · HTML, CSS and JavaScript · pytest · GitHub Actions
+Python 3.12+ · FastAPI · Pydantic · Google Gemini API (`gemini-3.5-flash-lite` with automatic backups, free tier) · Open-Meteo · HTML, CSS and JavaScript · pytest · GitHub Actions
 
 ## Run locally
 

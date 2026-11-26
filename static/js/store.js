@@ -136,3 +136,10 @@ export function membersPayload(members) {
     school: m.school ?? null,
   }));
 }
+
+/** Place name to share with the server, e.g. "Delhi, Delhi, India" or "near Delhi". */
+export function placeName(loc) {
+  if (!loc) return null;
+  const name = loc.gps ? (loc.near ? `near ${loc.near}` : null) : loc.name;
+  return name ? String(name).slice(0, 120) : null;
+}

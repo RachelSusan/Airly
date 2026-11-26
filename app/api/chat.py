@@ -25,6 +25,6 @@ async def chat(
     """Answer a question about the air, grounded in live data for the user's location."""
     ctx = body.context
     data, _ = await service.get_air_data(ctx.location.lat, ctx.location.lon)
-    facts = build_facts(data, ctx.members, ctx.household)
+    facts = build_facts(data, ctx.members, ctx.household, ctx.location.name)
     reply, tools_used, source = await answer(body.messages, facts, ai)
     return ChatResponse(source=source, reply=reply, tools_used=tools_used)

@@ -17,9 +17,9 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     gemini_api_key: SecretStr | None = None
-    gemini_model: str = "gemini-3.8-flash"
+    gemini_model: str = "gemini-3.5-flash-lite"
     # Comma-separated models to try when the main one is busy, rate-limited or retired.
-    gemini_fallback_models: str = "gemini-3.5-flash-lite,gemini-3.1-flash-lite"
+    gemini_fallback_models: str = "gemini-3.1-flash-lite,gemini-3.8-flash"
     app_env: Literal["development", "production"] = "development"
     log_level: str = "INFO"
     air_cache_ttl_seconds: int = Field(default=900, ge=60, le=3600)
