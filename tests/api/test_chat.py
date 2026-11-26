@@ -95,10 +95,10 @@ def test_chat_empty_reply_falls_back(make_client: MakeClient) -> None:
 def test_chat_commute_switch_tool(make_client: MakeClient) -> None:
     args = {"from_mode": "petrol_car", "to_mode": "metro", "distance_km": 12, "days_per_week": 5}
     models = FakeModels(
-        tool_response(("t1", "estimate_commute_switch", args)), text_response("Saves 874 kg.")
+        tool_response(("t1", "estimate_commute_switch", args)), text_response("Saves 686 kg.")
     )
     make_client(models=models).post("/api/chat", json=_body("Metro?"))
-    assert tool_results(models.requests[1])[0].response["co2_kg"] == -873.6
+    assert tool_results(models.requests[1])[0].response["co2_kg"] == -686.4
 
 
 def test_chat_must_end_with_user(make_client: MakeClient) -> None:

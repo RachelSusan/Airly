@@ -58,16 +58,27 @@ class EmissionFactor:
     basis: str
 
 
-# Working defaults: verify against sources before final submission (docs/tasks.md).
+GRID_KG_CO2_PER_KWH = 0.79  # CEA CO2 Baseline Database, Indian grid weighted average (FY 2019-20)
+
+# CO2 per km, checked November 2026 (details and confidence in docs/impact_methodology.md):
+# - Combustion cars, two-wheelers and autos: India GHG Program (2015) factors where confirmed,
+#   otherwise fuel CO2 content from the same report (petrol 2.27 kg/L, diesel 2.64 kg/L,
+#   CNG 2.69 kg/kg) divided by typical real-world fuel economy.
+# - Bus: TERI (29.5 g CO2 per passenger-km). Metro and electric vehicles: estimates from the
+#   grid factor above. PM2.5 and NOx: BS-VI type-approval limits plus non-exhaust estimates.
 EMISSION_FACTORS: dict[Mode, EmissionFactor] = {
-    Mode.PETROL_CAR: EmissionFactor(0.170, 0.012, 0.060, "petrol car, single occupant"),
-    Mode.DIESEL_CAR: EmissionFactor(0.170, 0.015, 0.080, "diesel car, single occupant"),
-    Mode.CNG_CAR: EmissionFactor(0.130, 0.010, 0.050, "CNG car, single occupant"),
-    Mode.EV_CAR: EmissionFactor(0.110, 0.008, 0.0, "electric car, grid electricity"),
-    Mode.PETROL_2W: EmissionFactor(0.045, 0.006, 0.060, "petrol two-wheeler"),
-    Mode.EV_2W: EmissionFactor(0.021, 0.003, 0.0, "electric two-wheeler, grid electricity"),
+    Mode.PETROL_CAR: EmissionFactor(0.140, 0.012, 0.060, "petrol car, single occupant"),
+    Mode.DIESEL_CAR: EmissionFactor(0.150, 0.015, 0.080, "diesel car, single occupant"),
+    Mode.CNG_CAR: EmissionFactor(0.120, 0.010, 0.050, "CNG car, single occupant"),
+    Mode.EV_CAR: EmissionFactor(
+        round(0.15 * GRID_KG_CO2_PER_KWH, 3), 0.008, 0.0, "electric car, grid electricity"
+    ),
+    Mode.PETROL_2W: EmissionFactor(0.036, 0.006, 0.060, "petrol two-wheeler"),
+    Mode.EV_2W: EmissionFactor(
+        round(0.03 * GRID_KG_CO2_PER_KWH, 3), 0.003, 0.0, "electric two-wheeler, grid electricity"
+    ),
     Mode.AUTO_CNG: EmissionFactor(
-        round(0.070 / AUTO_OCCUPANCY, 4),
+        round(0.100 / AUTO_OCCUPANCY, 4),
         round(0.008 / AUTO_OCCUPANCY, 4),
         round(0.050 / AUTO_OCCUPANCY, 4),
         f"CNG auto-rickshaw shared by {AUTO_OCCUPANCY} passengers",
@@ -82,9 +93,9 @@ EMISSION_FACTORS: dict[Mode, EmissionFactor] = {
 PUBLIC_OR_ACTIVE_MODES = frozenset({Mode.BUS, Mode.METRO, Mode.CYCLE, Mode.WALK, Mode.EV_2W})
 
 SOURCES: tuple[str, ...] = (
-    "India GHG Program: India Specific Road Transport Emission Factors (2015)",
+    "India GHG Program / WRI: India Specific Road Transport Emission Factors (2015)",
     "Central Electricity Authority: CO2 Baseline Database for the Indian Power Sector",
-    "ICCT India: vehicle emission briefs; BS-VI type-approval limits",
+    "TERI: per-passenger emissions by mode in Delhi; BS-VI type-approval limits (MoRTH)",
 )
 TREE_SOURCE = "Common estimate of ~21 kg CO2 absorbed per mature tree per year"
 

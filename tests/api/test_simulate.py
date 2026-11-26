@@ -28,7 +28,7 @@ def test_petrol_to_public_rules(make_client: MakeClient) -> None:
     }
     data = make_client().post("/api/simulate", json=body).json()
     assert data["source"] == "rules"
-    assert data["result"]["co2_kg"] == -873.6
+    assert data["result"]["co2_kg"] == -686.4
     assert "not a forecast" in data["explanation"]
     assert data["disclaimer"]
     assert data["assumptions"]

@@ -39,7 +39,7 @@ def test_build_facts_full_household(air: AirData) -> None:
     assert data["ventilation"]["open_windows_now"] is False
     assert [m["member_id"] for m in data["members"]] == ["kid", "mum"]
     alternatives = {a["to_mode"]: a for a in data["commute"]["alternatives"]}
-    assert alternatives["metro"]["co2_kg_per_year"] == -873.6
+    assert alternatives["metro"]["co2_kg_per_year"] == -686.4
     assert "cycle" not in alternatives  # 12 km is too far for the cycling suggestion
     assert data["school"]["best_outdoor_slot"]["start"] == "10:00 AM"
     assert data["school"]["hours"] == "8:00 AM-2:00 PM"
