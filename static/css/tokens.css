@@ -1,22 +1,24 @@
-/* Design tokens: light, calm, nature-inspired palette (see docs/design_system.md) */
+/* Design tokens: editorial nature theme (see docs/design_system.md).
+   Near-black ink on white, olive accent, soft stone cards, pill buttons. */
 :root {
   color-scheme: light;
 
-  --color-bg: #f3f7f0;          /* soft sage mist */
-  --color-surface: #ffffff;
-  --color-surface-2: #eaf2e6;   /* pale leaf */
-  --color-surface-3: #dcebd5;
-  --color-text: #1f2d24;        /* deep forest ink */
-  --color-text-muted: #4b5d50;
-  --color-primary: #2f6b4f;     /* forest green */
-  --color-primary-hover: #245640;
+  --color-bg: #ffffff;
+  --color-surface: #f7f7f5;      /* stone card */
+  --color-surface-2: #ffffff;    /* tiles inside cards */
+  --color-surface-3: #ecece6;
+  --color-ink: #181818;
+  --color-text: #181818;
+  --color-text-muted: #616161;
+  --color-primary: #666832;      /* olive */
+  --color-primary-hover: #53552a;
+  --color-primary-soft: #eeefe2;
   --color-primary-contrast: #ffffff;
-  --color-accent: #7fb069;      /* fresh leaf */
-  --color-sky: #e4f1f5;         /* clear-sky tint */
-  --color-border: #cfdcca;
-  --color-focus: #1f6f8b;       /* calm teal, distinct from greens */
+  --color-border: #e6e6e1;
+  --color-focus: #1f6f8b;
   --color-danger: #a8322b;
   --color-danger-contrast: #ffffff;
+  --glass: rgb(24 24 24 / 0.55);
 
   /* AQI: badge text on tinted background (AA contrast) */
   --aqi-good-fg: #0b3d21;         --aqi-good-bg: #d7f2e1;         --aqi-good: #2e9e5b;
@@ -30,10 +32,12 @@
   --advice-caution-fg: #4d3b00; --advice-caution-bg: #fff4c7;
   --advice-avoid-fg: #5c0b06;   --advice-avoid-bg: #fbd9d6;
 
-  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
-  --fs-display: 3rem;
-  --fs-h1: 1.75rem;
-  --fs-h2: 1.375rem;
+  --font-sans: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  --font-display: "Nunito Sans", "Manrope", system-ui, sans-serif;
+  --fs-hero: clamp(2.5rem, 7vw, 4.25rem);
+  --fs-display: 3.25rem;
+  --fs-h1: 2.25rem;
+  --fs-h2: 1.75rem;
   --fs-h3: 1.125rem;
   --fs-body: 1rem;
   --fs-small: 0.875rem;
@@ -45,10 +49,12 @@
   --space-6: 24px;
   --space-8: 32px;
   --space-12: 48px;
+  --space-16: 64px;
 
-  --radius-sm: 8px;
+  --radius-sm: 10px;
   --radius-md: 16px;
-  --radius-pill: 999px;
-  --shadow-card: 0 1px 2px rgb(31 45 36 / 0.06), 0 4px 16px rgb(47 107 79 / 0.06);
-  --max-width: 1100px;
+  --radius-lg: 24px;
+  --radius-pill: 100px;
+  --shadow-float: 0 20px 50px rgb(24 24 24 / 0.12);
+  --max-width: 1180px;
 }

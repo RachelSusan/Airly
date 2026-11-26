@@ -11,21 +11,20 @@ A calm, trustworthy, readable interface. Health information must be clear at a g
 
 ## 2. Colour tokens
 
-Defined as CSS custom properties on `:root`. The theme is **light only**: a calm, natural look with soft sage backgrounds, forest-green accents and a light leaf motif in the header.
+An editorial nature look: near-black ink on white, an olive accent, soft stone cards, pill-shaped buttons and a floating glass navigation bar over a full-bleed city photo. Light theme only.
 
 ### Brand and surface
 | Token | Value | Use |
 |---|---|---|
-| `--color-bg` | `#F3F7F0` | Page background (soft sage, with faint sky and leaf gradients) |
-| `--color-surface` | `#FFFFFF` | Cards |
-| `--color-surface-2` | `#EAF2E6` | Tinted panels, chips |
-| `--color-sky` | `#E4F1F5` | Location bar |
-| `--color-text` | `#1F2D24` | Body text (deep forest ink) |
-| `--color-text-muted` | `#4B5D50` | Secondary text (still ≥ 4.5:1) |
-| `--color-primary` | `#2F6B4F` | Buttons, links, active tab (forest green) |
-| `--color-accent` | `#7FB069` | Positive bars, decoration (fresh leaf) |
-| `--color-border` | `#CFDCCA` | Dividers |
-| `--color-focus` | `#1F6F8B` | Focus ring (3 px calm teal, distinct from the greens) |
+| `--color-bg` | `#FFFFFF` | Page background |
+| `--color-surface` | `#F7F7F5` | Cards (stone) |
+| `--color-surface-2` | `#FFFFFF` | Tiles inside cards |
+| `--color-ink` / `--color-text` | `#181818` | Text, outline buttons, footer |
+| `--color-text-muted` | `#616161` | Secondary text (≥ 4.5:1 on white and stone) |
+| `--color-primary` | `#666832` | Olive accent: primary buttons, eyebrows, links (≈ 5.8:1 with white) |
+| `--color-primary-soft` | `#EEEFE2` | Selected chips and options |
+| `--glass` | `rgba(24,24,24,.55)` + blur | Floating navigation pill |
+| `--color-focus` | `#1F6F8B` | Focus ring (3 px) |
 
 ### AQI scale (Indian NAQI categories)
 Badges use a **tinted background with dark text** so contrast stays at AA or better.
@@ -48,7 +47,7 @@ Badges use a **tinted background with dark text** so contrast stays at AA or bet
 
 ## 3. Typography
 
-- **Font:** system stack, `system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif`. No web-font download (faster, and Indic scripts render well).
+- **Fonts:** **Manrope** for text and UI, **Nunito Sans** (600) for display headings, from Google Fonts, with a system-font fallback.
 - **Base size:** 16 px (1rem), line height 1.5. Users can scale to 200% without breaking the layout.
 
 | Token | Size | Weight | Use |
@@ -79,7 +78,9 @@ Badges use a **tinted background with dark text** so contrast stays at AA or bet
 |---|---|---|
 | **AQI Hero Card** | Big AQI number, category badge, dominant pollutant, one-line advice, last-updated time | Number and category in one text string for screen readers |
 | **Pollutant Chips** | PM2.5, PM10, NO₂, O₃, CO, SO₂ with units | `<dl>` term and value pairs |
-| **City Scene** | Animated SVG banner: a colourful skyline generated from the city name, a landmark for Delhi, Mumbai, Kolkata, Hyderabad and Agra, trees swaying in the breeze, drifting clouds and birds. The sky colour and smog haze follow the live AQI category | Decorative (`aria-hidden`), with a text caption describing the haze; "Pause animation" button (WCAG 2.2.2); starts paused when the user prefers reduced motion |
+| **Photo hero** | Full-bleed real photo of the user's city (Unsplash), dark gradient, large city name, live AQI badge and a smog tint whose strength follows the AQI category. No animation | Photo has descriptive alt text; the AQI and haze meaning are given as text |
+| **Location card** | White floating card overlapping the hero: Indian city picker, typeahead search, "Use my location" | Labelled controls; status messages in a live region |
+| **Member card** | Avatar initials, name, relationship and age, health, activities, travel and school; Edit and Remove | Buttons name the member ("Edit Aarav") |
 | **Air Map** | OpenStreetMap (Leaflet) with a 5×5 grid of modelled AQI cells (~11 km each) around the user, a "You are here" marker, a legend and popups | Focusable region with keyboard pan and zoom; a text summary names the cleanest and most polluted nearby areas; the legend is a real list |
 | **Location chip** | "📍 Using live data for …" with a "Change location" button on every view that uses location | Button moves focus to the city search |
 | **Before/After chart** | Simulator CO₂ bars (before in clay, after in leaf green) | Values printed as text next to each bar |

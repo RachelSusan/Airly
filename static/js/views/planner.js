@@ -2,7 +2,15 @@
 import { api } from "../api.js";
 import { h, render } from "../dom.js";
 import { householdPayload, membersPayload, store } from "../store.js";
-import { adviceBadge, categoryBadge, MODE_LABELS, riskBadge, sourceBadge } from "../format.js";
+import {
+  adviceBadge,
+  categoryBadge,
+  MODE_LABELS,
+  RELATIONSHIP_LABELS,
+  riskBadge,
+  roleLabel,
+  sourceBadge,
+} from "../format.js";
 
 const REFRESH_MS = 30 * 60 * 1000;
 let lastPlan = null;
@@ -61,7 +69,7 @@ async function load(output, button) {
 
 function planView(plan, previous) {
   const before = new Map((previous?.routine ?? []).map((r) => [r.activity, `${r.start}-${r.end}`]));
-  const names = new Map(store.get().members.map((m) => [m.id, m.name || "Family member"]));
+  const people = new Map(store.get().members.map((m) => [m.id, m]));
   return [
     h(
       "div",
@@ -98,8 +106,9 @@ function planView(plan, previous) {
     h(
       "section",
       { class: "section", "aria-labelledby": "members-title" },
-      h("h2", { id: "members-title" }, "Family protection checklists"),
-      h("div", { class: "grid grid--2" }, plan.members.map((m) => memberCard(m, names.get(m.member_id)))),
+      h("p", { class: "eyebrow" }, "For each person"),
+      h("h2", { id: "members-title" }, "Family plans and checklists"),
+      h("div", { class: "grid grid--2" }, plan.members.map((m) => memberCard(m, people.get(m.member_id)))),
     ),
   ];
 }
@@ -129,7 +138,9 @@ function commuteCard(c) {
   );
 }
 
-function memberCard(m, name) {
+function memberCard(m, person) {
+  const name = person?.name || RELATIONSHIP_LABELS[person?.relationship] || "Family member";
+  const role = roleLabel(person);
   const progress = h("p", { class: "progress", role: "status" });
   const update = () => {
     const done = m.checklist.filter((item) => store.isChecked(m.member_id, item.id)).length;
@@ -138,8 +149,40 @@ function memberCard(m, name) {
   const card = h(
     "article",
     { class: "card", "aria-label": `${name} checklist` },
-    h("div", { class: "item-row" }, h("h3", { class: "card__title" }, name), riskBadge(m.risk_level)),
+    h(
+      "div",
+      { class: "member-card__head" },
+      h("span", { class: "avatar", "aria-hidden": "true" }, name.slice(0, 2).toUpperCase()),
+      h("div", { class: "grow" }, h("h3", { class: "card__title" }, name), h("p", { class: "muted small" }, role)),
+      riskBadge(m.risk_level),
+    ),
     m.alerts.map((a) => h("p", { class: "alert", role: "status" }, a)),
+    m.routine.length
+      ? h(
+          "div",
+          { class: "member-block" },
+          h("h4", {}, "Best times today"),
+          h("ul", { class: "mini-list" }, m.routine.map((r) => h("li", {}, h("span", { class: "item-row" }, h("strong", {}, `${r.activity} · ${r.start}–${r.end}`), adviceBadge(r.advice)), h("span", { class: "muted small" }, r.impact || r.why)))),
+        )
+      : null,
+    m.commute
+      ? h(
+          "div",
+          { class: "member-block" },
+          h("h4", {}, `Travel: leave around ${m.commute.recommended_departure}`),
+          h("p", { class: "muted small" }, m.commute.why),
+          m.commute.alternative_mode ? h("p", { class: "small" }, h("strong", {}, "Greener option: "), `${MODE_LABELS[m.commute.alternative_mode] ?? m.commute.alternative_mode}. ${m.commute.alternative_impact}`) : null,
+        )
+      : null,
+    m.school.length
+      ? h(
+          "div",
+          { class: "member-block" },
+          h("h4", {}, "At school or college"),
+          m.school.map((sl) => h("p", { class: "item-row small" }, h("span", {}, `${sl.slot}${sl.alternative ? ` — instead: ${sl.alternative}` : ""}`), adviceBadge(sl.advice))),
+        )
+      : null,
+    h("h4", {}, "Protection checklist"),
     h(
       "ul",
       { class: "checklist" },

@@ -27,12 +27,38 @@ function load() {
     if (!raw) return defaults();
     const parsed = JSON.parse(raw);
     if (parsed?.version !== VERSION) return defaults();
-    const state = { ...defaults(), ...parsed };
+    const state = migrate({ ...defaults(), ...parsed });
     if (state.checklist?.date !== today()) state.checklist = { date: today(), done: {} };
     return state;
   } catch {
     return defaults();
   }
+}
+
+/**
+ * Older versions stored one commute and one school timetable for the whole household.
+ * Move them onto members: the commute to "self" (or the first adult), school to children.
+ */
+function migrate(state) {
+  const { commute, school } = state.household ?? {};
+  if (!commute && !school) return state;
+  const members = state.members.map((m) => ({ ...m }));
+  if (commute) {
+    // Only someone old enough to commute; never an infant or child.
+    const owner =
+      members.find((m) => m.relationship === "self") ??
+      members.find((m) => m.age_group === "adult") ??
+      members.find((m) => ["teen", "senior"].includes(m.age_group));
+    if (owner && !owner.commute) owner.commute = commute;
+  }
+  if (school) {
+    members
+      .filter((m) => ["child", "teen"].includes(m.age_group) && !m.school)
+      .forEach((m) => {
+        m.school = school;
+      });
+  }
+  return { ...state, members, household: { ...state.household, commute: null, school: null } };
 }
 
 let state = load();
@@ -89,11 +115,14 @@ export function householdPayload(household) {
 
 /** Members payload for the API (only the fields the server accepts). */
 export function membersPayload(members) {
-  return members.map(({ id, name, age_group, conditions, outdoor_activities }) => ({
-    id,
-    name: name || null,
-    age_group,
-    conditions,
-    outdoor_activities,
+  return members.map((m) => ({
+    id: m.id,
+    name: m.name || null,
+    relationship: m.relationship || "other",
+    age_group: m.age_group,
+    conditions: m.conditions ?? [],
+    outdoor_activities: m.outdoor_activities ?? [],
+    commute: m.commute ?? null,
+    school: m.school ?? null,
   }));
 }

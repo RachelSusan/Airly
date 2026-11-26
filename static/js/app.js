@@ -200,23 +200,8 @@ function useMyLocation() {
   );
 }
 
-/** Let people pause the moving scene (WCAG 2.2.2); start paused if they prefer reduced motion. */
-function setupSceneToggle() {
-  const button = document.getElementById("scene-toggle");
-  const scene = document.getElementById("scene");
-  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const apply = (paused) => {
-    scene.classList.toggle("scene--paused", paused);
-    button.setAttribute("aria-pressed", String(paused));
-    button.textContent = paused ? "Play animation" : "Pause animation";
-  };
-  apply(reduced);
-  button.addEventListener("click", () => apply(!scene.classList.contains("scene--paused")));
-}
-
 function init() {
   mountScene(document.getElementById("scene"));
-  setupSceneToggle();
   setupCityPicker();
   document.getElementById("location-form").addEventListener("submit", searchCity);
   document.getElementById("geo-button").addEventListener("click", useMyLocation);

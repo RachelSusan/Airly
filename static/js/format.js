@@ -60,6 +60,16 @@ export const AGE_LABELS = {
   senior: "Senior (65+)",
 };
 
+export const RELATIONSHIP_LABELS = {
+  self: "Me",
+  spouse: "Spouse / partner",
+  child: "Child",
+  parent: "Parent",
+  grandparent: "Grandparent",
+  sibling: "Sibling",
+  other: "Other family",
+};
+
 export const CONDITION_LABELS = {
   asthma: "Asthma",
   copd: "COPD",
@@ -114,4 +124,12 @@ export function hhmm(iso) {
 
 export function number(value, digits = 0) {
   return Number(value).toLocaleString("en-IN", { maximumFractionDigits: digits });
+}
+
+/** "Me · Adult (18–64)"; avoids "Child · Child (2–12)". */
+export function roleLabel(person) {
+  if (!person) return "";
+  const age = AGE_LABELS[person.age_group] ?? "";
+  if (person.relationship === "child" || !person.relationship) return age;
+  return `${RELATIONSHIP_LABELS[person.relationship] ?? "Family"} · ${age}`;
 }

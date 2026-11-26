@@ -45,9 +45,10 @@ Set by `app/security/headers.py` on every response:
 
 ```
 Content-Security-Policy: default-src 'self'; script-src 'self' https://unpkg.com;
-                         style-src 'self' https://unpkg.com;
+                         style-src 'self' https://unpkg.com https://fonts.googleapis.com;
+                         font-src 'self' https://fonts.gstatic.com;
                          img-src 'self' data: https://tile.openstreetmap.org https://unpkg.com;
-                         connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self';
+                         connect-src 'self'; object-src 'none'; base-uri 'self';
                          frame-ancestors 'none'; form-action 'self'
 X-Content-Type-Options: nosniff
 Referrer-Policy: strict-origin-when-cross-origin
@@ -66,7 +67,7 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains   (production, HT
 
 - Dynamic text (AI replies, names, city names) is rendered with `textContent` or created DOM nodes. **Never `innerHTML`** with untrusted data.
 - AI replies are plain text. If light formatting is needed, a tiny allowlist renderer handles **bold** and line breaks only.
-- No third-party scripts or analytics. The only external resources are Leaflet (SRI-pinned) and OpenStreetMap tiles.
+- No third-party scripts or analytics. The only external resources are Leaflet (SRI-pinned), OpenStreetMap tiles and Google Fonts (Manrope, Nunito Sans). Fonts fall back to system fonts if blocked.
 
 ## 7. AI safety and prompt-injection defence
 

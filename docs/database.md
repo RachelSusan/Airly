@@ -28,17 +28,18 @@ Stored under one versioned key, `breathewise:v1`.
     "lon": 77.21
   },
   "household": {
-    "commute": { "mode": "petrol_car", "distance_km": 12, "days_per_week": 5, "depart_hour": 9 },
-    "school":  { "start_hour": 8, "end_hour": 14 },          // optional
     "home":    { "has_purifier": true, "cooking_fuel": "lpg", "smoker_at_home": false }
   },
   "members": [
     {
       "id": "m_7f3a",        // random client id, not personal
       "name": "Aarav",        // nickname is fine; optional
+      "relationship": "child", // self | spouse | child | parent | grandparent | sibling | other
       "age_group": "child",   // infant | child | teen | adult | senior
       "conditions": ["asthma"], // asthma | copd | heart | pregnancy | allergy
-      "outdoor_activities": ["play", "cycling"]
+      "outdoor_activities": ["play", "cycling"],
+      "commute": null,        // or { mode, distance_km, days_per_week, depart_hour }
+      "school": { "start_hour": 8, "end_hour": 14 }
     }
   ],
   "checklist": {

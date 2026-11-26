@@ -1,5 +1,5 @@
-// Photo hero: a real photo of the user's city with the live AQI on top, a smog tint whose
-// strength follows today's AQI category, and a slow drifting-mist layer.
+// Photo hero: a real photo of the user's city with the live AQI on top and a smog tint whose
+// strength follows today's AQI category. No moving content.
 // Photos are from Unsplash (Unsplash License) and stored locally in /img/cities.
 import { h } from "./dom.js";
 import { categoryBadge } from "./format.js";
@@ -23,10 +23,10 @@ export function mountScene(host) {
   parts = {
     img: h("img", { class: "hero__img", alt: "", decoding: "async" }),
     haze: h("div", { class: "hero__haze", "aria-hidden": "true" }),
-    mist: h("div", { class: "hero__mist", "aria-hidden": "true" }),
     eyebrow: h("p", { class: "hero__eyebrow" }, "Live air quality"),
     city: h("p", { class: "hero__city" }, "Breathe easier, every day"),
-    aqi: h("p", { class: "hero__aqi" }, "Choose your city to see live air quality."),
+    aqi: h("p", { class: "hero__aqi" }, "Choose your city below to see live air quality."),
+    note: h("p", { class: "hero__note" }, "Plan the cleanest hours for walks, school and travel, and see how every choice changes your family's exposure."),
     credit: h("p", { class: "hero__credit" }),
   };
   host.replaceChildren(
@@ -35,7 +35,6 @@ export function mountScene(host) {
       { class: "hero" },
       parts.img,
       parts.haze,
-      parts.mist,
       h("div", { class: "hero__shade", "aria-hidden": "true" }),
       h(
         "div",
@@ -43,6 +42,7 @@ export function mountScene(host) {
         parts.eyebrow,
         parts.city,
         parts.aqi,
+        parts.note,
       ),
       parts.credit,
     ),
@@ -61,11 +61,7 @@ export function updateScene({ city, category, label, aqi, nearYou = false }) {
   if (category) {
     parts.haze.dataset.category = category;
     parts.aqi.replaceChildren(h("span", { class: "hero__number" }, `AQI ${aqi}`), " ", categoryBadge(category, label));
-    const caption = document.getElementById("scene-caption");
-    if (caption) {
-      caption.textContent = `The haze over the photo follows today's air: ${label} in ${name}.`;
-      caption.hidden = false;
-    }
+    parts.note.textContent = `The haze over this photo follows today's air in ${name}: ${label}.`;
   }
 }
 
