@@ -1,0 +1,20 @@
+{
+  "latitude": 28.625,
+  "longitude": 77.25,
+  "timezone": "Asia/Kolkata",
+  "current": {
+    "time": "2026-11-26T09:15",
+    "interval": 900,
+    "temperature_2m": 14.2,
+    "relative_humidity_2m": 78,
+    "wind_speed_10m": 4.1,
+    "precipitation": 0.0
+  },
+  "hourly": {
+    "time": ["2026-11-26T08:00", "2026-11-26T09:00", "2026-11-26T10:00", "2026-11-26T11:00"],
+    "temperature_2m": [13.0, 14.0, 16.0, 18.0],
+    "relative_humidity_2m": [82, 78, 70, 62],
+    "wind_speed_10m": [3.0, 4.0, 6.0, 8.0],
+    "precipitation": [0.0, 0.0, 0.0, 0.0]
+  }
+}
