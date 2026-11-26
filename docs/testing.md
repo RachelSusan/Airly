@@ -26,7 +26,7 @@ Goal: **prove the logic is correct and the app is safe**, quickly and repeatably
 ## 3. Key test cases
 
 ### Engine: AQI (`test_aqi.py`)
-- Each pollutant's breakpoint edges: 30 → 50, 31 → 51, 60 → 100, 90 → 200, 120 → 300, 250 → 400 for PM2.5
+- Each pollutant's breakpoint edges: 30 → 50, 60 → 100, 90 → 200, 120 → 300, 250 → 400, ≥ 380 → 500 for PM2.5 (continuous interpolation between breakpoints)
 - Values above the top breakpoint are capped at 500
 - Overall AQI = maximum sub-index; the dominant pollutant is identified correctly
 - Missing pollutant values are handled (index from the available ones; at least PM2.5 or PM10 required)

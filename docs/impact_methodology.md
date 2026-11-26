@@ -25,6 +25,7 @@ AQI = max(sub-indices)          dominant pollutant = argmax
 | Severe | 401–500 | 250+ | 430+ | 400+ | 748+ | 34+ | 1600+ |
 
 Source: CPCB, *National Air Quality Index* (2014).
+**Interpolation:** like the CPCB calculator, we interpolate continuously between the upper bounds of each band (for example, PM2.5 30 → 50 and 60 → 100). The Severe band is extended by the width of the Very Poor band, so PM2.5 ≥ 380 µg/m³ gives the maximum of 500. Implemented in `app/engine/aqi.py`.
 **Our simplification:** the official index uses 24-hour averages (8-hour for O₃ and CO). We apply the breakpoints to **hourly modelled values** from Open-Meteo to get a near-real-time estimate. This is labelled as an estimate in the UI. Open-Meteo gives CO in µg/m³, which we divide by 1,000 to get mg/m³.
 
 ## 2. Sensitivity and risk
@@ -50,8 +51,8 @@ Based on CPCB health statements for each category, simplified into the advice st
 
 1. Take the hourly forecast for the next 24 hours.
 2. Filter by activity constraints: daylight hours for play and walking, school hours for school slots, a commute window around the departure hour ±2 h.
-3. Slide a window of `duration_hours` and score it by the **mean PM2.5-weighted AQI**.
-4. Pick the lowest-scoring window. Its advice comes from the risk table for the most sensitive participant.
+3. Slide a window of `duration_hours` (contiguous hours only) and score it by the **mean AQI**.
+4. Pick the lowest-scoring window (the earliest wins ties). Its advice comes from the risk table for the most sensitive participant. **Light** activities (walking, commuting) are assessed one category less severe than **strenuous** ones (jogging, cycling, play).
 5. If even the best window is `avoid`, return an indoor alternative.
 
 ## 4. Inhaled dose and exposure change

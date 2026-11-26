@@ -7,13 +7,13 @@ Legend: `[ ]` to do · `[x]` done · `[~]` in progress
 ## Day 1: 26 Nov: Foundations
 - [x] Project docs (README, Agents, CLAUDE, PRD, design system, architecture, database, API, security, accessibility, code style, testing, AI prompts, impact methodology, deployment, tasks)
 - [ ] Plan the extra options (to be discussed)
-- [ ] Repo scaffolding: `.gitignore`, `.env.example`, `requirements*.txt`, `pyproject.toml`, `LICENSE`
-- [ ] First commit and push to `main`
-- [ ] `app/config.py`, `app/main.py` with security headers and a health endpoint
-- [ ] Services: Open-Meteo air quality, weather, geocoding, TTL cache
-- [ ] Engine: `aqi.py`, `risk.py`, `windows.py`, `ventilation.py`, `checklist.py`, `impact.py`
-- [ ] Unit tests for the engine and services
-- [ ] CI workflow
+- [x] Repo scaffolding: `.gitignore`, `.env.example`, `requirements*.txt`, `pyproject.toml`, `LICENSE`
+- [x] First commit and push to `main`
+- [x] `app/config.py`, `app/main.py` with security headers and a health endpoint
+- [x] Services: Open-Meteo air quality, weather, geocoding, TTL cache (checked against the live API)
+- [x] Engine: `aqi.py`, `risk.py`, `windows.py`, `ventilation.py`, `checklist.py`, `exposure.py`, `impact.py`
+- [x] Unit tests for the engine and services (120 tests, 99% coverage)
+- [x] CI workflow (lint, tests with coverage gate, `pip-audit`)
 
 ## Day 2: 27 Nov: AI and UI
 - [ ] `app/ai`: client, prompts, schemas, tools, fallback

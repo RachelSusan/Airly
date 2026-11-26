@@ -28,7 +28,7 @@ BreatheWise is a single **FastAPI** service. It serves a static, framework-free 
   Open-Meteo APIs                              Anthropic Claude API
 ```
 
-**Dependency rule:** `api → services, engine, ai`; `ai → engine, services`; `engine → nothing` (pure functions, no I/O). This keeps the engine fully unit-testable.
+**Dependency rule:** `api → services, engine, ai`; `ai → engine, services`; `engine → models only` (pure functions, no I/O). This keeps the engine fully unit-testable.
 
 ## 2. Folder structure
 
@@ -55,6 +55,7 @@ BreatheWise/
 │   │   ├── windows.py       # Best/safe time windows from hourly forecast
 │   │   ├── checklist.py     # Rule-based protection checklist items
 │   │   ├── ventilation.py   # "Should I open my windows?" rules
+│   │   ├── exposure.py      # Inhaled PM2.5 dose + exposure change
 │   │   └── impact.py        # Emission factors + what-if calculations
 │   ├── ai/
 │   │   ├── client.py        # Anthropic SDK wrapper (timeouts, retries, errors)
