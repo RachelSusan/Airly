@@ -34,18 +34,7 @@ _MODE_LABELS = {
 def plan(facts: dict[str, Any]) -> PlanContent:
     """Build a complete plan directly from the facts."""
     now = facts["now"]
-    routine = [
-        RoutineItem(
-            activity=_ACTIVITY_LABELS.get(name, name),
-            start=w["start"],
-            end=w["end"],
-            advice=w["advice"],
-            why=f"Cleanest hour for this: AQI {w['avg_aqi']} ({w['category']}).",
-            impact=w["guidance"],
-        )
-        for name, w in facts["best_windows"].items()
-        if w is not None
-    ]
+    routine = _routine(facts["best_windows"])
     jog = facts.get("jog_exposure")
     if jog and routine:
         for item in routine:
@@ -68,17 +57,35 @@ def plan(facts: dict[str, Any]) -> PlanContent:
         commute=_commute(facts.get("commute")),
         school=_school(facts.get("school")),
         indoor_tips=_indoor_tips(facts["ventilation"]),
-        sustainable_choices=_sustainable(facts.get("commute")),
+        sustainable_choices=_sustainable(facts.get("commute"), facts["members"]),
         members=[
             MemberPlan(
                 member_id=m["member_id"],
                 risk_level=m["risk_level"],
                 alerts=m["alerts"],
+                routine=_routine(m.get("activity_windows") or {}),
+                commute=_commute(m.get("commute")),
+                school=_school(m.get("school")),
                 checklist=[ChecklistOut(**item) for item in m["checklist"]],
             )
             for m in facts["members"]
         ],
     )
+
+
+def _routine(windows: dict[str, Any]) -> list[RoutineItem]:
+    return [
+        RoutineItem(
+            activity=_ACTIVITY_LABELS.get(name, name),
+            start=w["start"],
+            end=w["end"],
+            advice=w["advice"],
+            why=f"Cleanest hour for this: AQI {w['avg_aqi']} ({w['category']}).",
+            impact=w["guidance"],
+        )
+        for name, w in windows.items()
+        if w is not None
+    ]
 
 
 def _commute(commute: dict[str, Any] | None) -> CommutePlan | None:
@@ -137,17 +144,24 @@ def _indoor_tips(ventilation: dict[str, Any]) -> list[Tip]:
     return tips
 
 
-def _sustainable(commute: dict[str, Any] | None) -> list[Tip]:
+def _sustainable(commute: dict[str, Any] | None, members: list[dict[str, Any]]) -> list[Tip]:
     choices: list[Tip] = []
-    best = _best_alternative(commute) if commute else None
-    if best:
-        choices.append(
-            Tip(
-                tip=f"Try {_MODE_LABELS.get(best['to_mode'], best['to_mode'])} for your commute",
-                why="Less fuel burned on the road.",
-                impact=f"About {abs(best['co2_kg_per_year']):,.0f} kg less CO2 a year (estimate).",
+    trips = [("your", commute)] + [
+        (f"{m.get('name') or 'This member'}'s", m.get("commute")) for m in members
+    ]
+    for owner, trip in trips:
+        best = _best_alternative(trip) if trip else None
+        if best:
+            mode = _MODE_LABELS.get(best["to_mode"], best["to_mode"])
+            choices.append(
+                Tip(
+                    tip=f"Try {mode} for {owner} commute",
+                    why="Less fuel burned on the road.",
+                    impact=(
+                        f"About {abs(best['co2_kg_per_year']):,.0f} kg less CO2 a year (estimate)."
+                    ),
+                )
             )
-        )
     choices.append(
         Tip(
             tip="Combine errands into one trip and avoid idling",

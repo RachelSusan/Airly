@@ -31,18 +31,16 @@ class Condition(StrEnum):
     ALLERGY = "allergy"
 
 
-class Member(BaseModel):
-    """One household member."""
+class Relationship(StrEnum):
+    """How a member relates to the person using the app."""
 
-    model_config = ConfigDict(extra="forbid", frozen=True)
-
-    id: str = Field(min_length=1, max_length=32, pattern=r"^[A-Za-z0-9_-]+$")
-    name: str | None = Field(default=None, max_length=40)
-    age_group: AgeGroup
-    conditions: tuple[Condition, ...] = Field(default=(), max_length=5)
-    outdoor_activities: tuple[
-        Annotated[str, StringConstraints(max_length=20, pattern=r"^[a-z_]+$")], ...
-    ] = Field(default=(), max_length=10)
+    SELF = "self"
+    SPOUSE = "spouse"
+    CHILD = "child"
+    PARENT = "parent"
+    GRANDPARENT = "grandparent"
+    SIBLING = "sibling"
+    OTHER = "other"
 
 
 class _Strict(BaseModel):
@@ -50,7 +48,7 @@ class _Strict(BaseModel):
 
 
 class Commute(_Strict):
-    """Regular commute. ``distance_km`` is one way."""
+    """Regular trip to work or college. ``distance_km`` is one way."""
 
     mode: Mode
     distance_km: float = Field(gt=0, le=200)
@@ -59,14 +57,30 @@ class Commute(_Strict):
 
 
 class School(_Strict):
-    """School hours (local time)."""
+    """School or college hours (local time)."""
 
     start_hour: int = Field(ge=5, le=12)
     end_hour: int = Field(ge=10, le=20)
 
 
+Activity = Annotated[str, StringConstraints(max_length=20, pattern=r"^[a-z_]+$")]
+
+
+class Member(_Strict):
+    """One family member, with their own travel and school routine."""
+
+    id: str = Field(min_length=1, max_length=32, pattern=r"^[A-Za-z0-9_-]+$")
+    name: str | None = Field(default=None, max_length=40)
+    relationship: Relationship = Relationship.OTHER
+    age_group: AgeGroup
+    conditions: tuple[Condition, ...] = Field(default=(), max_length=5)
+    outdoor_activities: tuple[Activity, ...] = Field(default=(), max_length=10)
+    commute: Commute | None = None
+    school: School | None = None
+
+
 class Home(_Strict):
-    """Home setup that changes indoor-air advice."""
+    """Home setup shared by the family; changes indoor-air advice."""
 
     has_purifier: bool = False
     cooking_fuel: CookingFuel = CookingFuel.LPG
@@ -74,7 +88,8 @@ class Home(_Strict):
 
 
 class Household(_Strict):
-    """Household lifestyle details (all optional)."""
+    """Shared home details. ``commute`` and ``school`` are kept for older clients;
+    per-member travel lives on each ``Member``."""
 
     commute: Commute | None = None
     school: School | None = None

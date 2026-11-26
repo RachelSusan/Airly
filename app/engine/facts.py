@@ -18,7 +18,7 @@ from app.engine.risk import Sensitivity, assess_member, sensitivity_for
 from app.engine.ventilation import ventilation_advice
 from app.engine.windows import Activity, TimeWindow, best_window, worst_hours
 from app.models.air import AirData
-from app.models.family import AgeGroup, Household, Member
+from app.models.family import AgeGroup, Commute, Household, Member, School
 
 COMMUTE_FLEX_HOURS = 2
 ACTIVE_MODE_MAX_KM = 5.0
@@ -26,6 +26,18 @@ PRIVATE_MOTOR_MODES = frozenset(
     {Mode.PETROL_CAR, Mode.DIESEL_CAR, Mode.CNG_CAR, Mode.PETROL_2W, Mode.AUTO_CNG}
 )
 DAYTIME = (7, 19)
+CHILD_AGES = frozenset({AgeGroup.INFANT, AgeGroup.CHILD})
+ACTIVITY_ALIASES: dict[str, Activity] = {
+    "walking": Activity.WALK,
+    "walk": Activity.WALK,
+    "jogging": Activity.JOG,
+    "running": Activity.JOG,
+    "jog": Activity.JOG,
+    "cycling": Activity.CYCLE,
+    "cycle": Activity.CYCLE,
+    "play": Activity.PLAY,
+    "sports": Activity.PLAY,
+}
 
 
 class NoAirDataError(ValueError):
@@ -101,9 +113,9 @@ def build_facts(air: AirData, members: Sequence[Member], household: Household) -
         "best_windows": windows,
         "jog_exposure": _jog_exposure(series, windows.get(Activity.JOG.value)),
         "ventilation": _ventilation(current, series, air, household),
-        "members": [_member(m, current, household) for m in members],
-        "commute": _commute(series, household, sensitivity),
-        "school": _school(series, household, child_sensitivity),
+        "members": [_member(m, current, series, household) for m in members],
+        "commute": _commute(series, household.commute, sensitivity),
+        "school": _school(series, household.school, child_sensitivity),
     }
     return HouseholdFacts(current=current, series=series, data=data)
 
@@ -133,12 +145,16 @@ def _window(window: TimeWindow | None) -> dict[str, Any] | None:
     }
 
 
-def _member(member: Member, current: AqiPoint, household: Household) -> dict[str, Any]:
+def _member(
+    member: Member, current: AqiPoint, series: Sequence[AqiPoint], household: Household
+) -> dict[str, Any]:
     risk = assess_member(member, current.category)
     checklist = checklist_for(member, current.category, has_purifier=household.home.has_purifier)
+    activities = _member_activities(member)
     return {
         "member_id": member.id,
         "name": member.name,
+        "relationship": member.relationship.value,
         "age_group": member.age_group.value,
         "conditions": [c.value for c in member.conditions],
         "sensitivity": risk.sensitivity.value,
@@ -147,7 +163,25 @@ def _member(member: Member, current: AqiPoint, household: Household) -> dict[str
         "guidance": risk.guidance.text,
         "alerts": list(risk.alerts),
         "checklist": [{"id": i.id, "text": i.text, "reason": i.reason} for i in checklist],
+        "activity_windows": {
+            a.value: _window(best_window(series, a, sensitivity=risk.sensitivity))
+            for a in activities
+        },
+        "commute": _commute(series, member.commute, risk.sensitivity),
+        "school": _school(series, member.school, risk.sensitivity),
     }
+
+
+def _member_activities(member: Member) -> list[Activity]:
+    """Map a member's listed outdoor activities to plannable activities (walk by default)."""
+    found: list[Activity] = []
+    for name in member.outdoor_activities:
+        activity = ACTIVITY_ALIASES.get(name)
+        if activity and activity not in found:
+            found.append(activity)
+    if not found:
+        found.append(Activity.PLAY if member.age_group in CHILD_AGES else Activity.WALK)
+    return found
 
 
 def _ventilation(
@@ -188,9 +222,8 @@ def _jog_exposure(series: Sequence[AqiPoint], best: dict[str, Any] | None) -> di
 
 
 def _commute(
-    series: Sequence[AqiPoint], household: Household, sensitivity: Sensitivity
+    series: Sequence[AqiPoint], commute: Commute | None, sensitivity: Sensitivity
 ) -> dict[str, Any] | None:
-    commute = household.commute
     if commute is None:
         return None
     earliest = max(0, commute.depart_hour - COMMUTE_FLEX_HOURS)
@@ -235,9 +268,8 @@ def _alternative(to_mode: Mode, result: ScenarioResult) -> dict[str, Any]:
 
 
 def _school(
-    series: Sequence[AqiPoint], household: Household, sensitivity: Sensitivity
+    series: Sequence[AqiPoint], school: School | None, sensitivity: Sensitivity
 ) -> dict[str, Any] | None:
-    school = household.school
     if school is None or school.end_hour <= school.start_hour:
         return None
     window = best_window(

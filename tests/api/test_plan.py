@@ -35,7 +35,15 @@ def _ai_plan(member_ids: list[str]) -> str:
             "indoor_tips": [],
             "sustainable_choices": [],
             "members": [
-                {"member_id": i, "risk_level": "high", "alerts": [], "checklist": []}
+                {
+                    "member_id": i,
+                    "risk_level": "high",
+                    "alerts": [],
+                    "routine": [],
+                    "commute": None,
+                    "school": [],
+                    "checklist": [],
+                }
                 for i in member_ids
             ],
         }
@@ -82,6 +90,42 @@ def test_plan_falls_back_on_api_error(make_client: MakeClient) -> None:
 def test_plan_falls_back_on_refusal(make_client: MakeClient) -> None:
     messages = FakeMessages(text_response("", stop_reason="refusal"))
     assert make_client(messages=messages).post("/api/plan", json=BODY).json()["source"] == "rules"
+
+
+def test_plan_gives_each_member_their_own_travel_and_school(make_client: MakeClient) -> None:
+    members = [
+        {
+            "id": "dad",
+            "name": "Ravi",
+            "relationship": "self",
+            "age_group": "adult",
+            "outdoor_activities": ["jogging"],
+            "commute": {"mode": "petrol_car", "distance_km": 12, "days_per_week": 5},
+        },
+        {
+            "id": "kid",
+            "name": "Aarav",
+            "relationship": "child",
+            "age_group": "child",
+            "conditions": ["asthma"],
+            "school": {"start_hour": 8, "end_hour": 14},
+        },
+    ]
+    body = {"location": LOCATION, "members": members}
+    data = make_client().post("/api/plan", json=body).json()
+    dad, kid = data["members"]
+    assert dad["commute"]["alternative_mode"]
+    assert [r["activity"] for r in dad["routine"]] == ["Jog or run"]
+    assert dad["school"] == []
+    assert kid["commute"] is None
+    assert kid["school"][0]["advice"] == "avoid"
+    assert [r["activity"] for r in kid["routine"]] == ["Outdoor play"]
+    assert any("Ravi" in t["tip"] for t in data["sustainable_choices"])
+
+
+def test_plan_rejects_bad_relationship(make_client: MakeClient) -> None:
+    body = {**BODY, "members": [{**FAMILY[0], "relationship": "boss"}]}
+    assert make_client().post("/api/plan", json=body).status_code == 422
 
 
 def test_plan_rejects_duplicate_members(make_client: MakeClient) -> None:

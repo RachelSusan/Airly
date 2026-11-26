@@ -151,9 +151,14 @@ class ChecklistOut(BaseModel):
 
 
 class MemberPlan(BaseModel):
+    """Everything planned for one family member."""
+
     member_id: str
     risk_level: RiskLevel
     alerts: list[str]
+    routine: list[RoutineItem]
+    commute: CommutePlan | None
+    school: list[SchoolSlot]
     checklist: list[ChecklistOut]
 
 
