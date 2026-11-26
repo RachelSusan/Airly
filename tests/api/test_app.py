@@ -3,7 +3,7 @@ from fastapi.testclient import TestClient
 from app import __version__
 from app.config import Settings
 from app.main import create_app
-from app.security.headers import CONTENT_SECURITY_POLICY
+from app.security.headers import CONTENT_SECURITY_POLICY, DOCS_CONTENT_SECURITY_POLICY
 
 
 def _client(**overrides: object) -> TestClient:
@@ -31,8 +31,13 @@ def test_production_adds_hsts_and_hides_docs() -> None:
     assert client.get("/openapi.json").status_code == 404
 
 
-def test_development_exposes_docs() -> None:
-    assert _client().get("/docs").status_code == 200
+def test_development_exposes_docs_with_docs_only_policy() -> None:
+    client = _client()
+    docs = client.get("/docs")
+    assert docs.status_code == 200
+    assert docs.headers["Content-Security-Policy"] == DOCS_CONTENT_SECURITY_POLICY
+    # The relaxed policy must not leak to other routes
+    assert client.get("/api/health").headers["Content-Security-Policy"] == CONTENT_SECURITY_POLICY
 
 
 def test_settings_ai_enabled_flag() -> None:

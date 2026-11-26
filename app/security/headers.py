@@ -31,6 +31,21 @@ BASE_HEADERS: dict[str, str] = {
 
 HSTS_HEADER = ("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
 
+# Swagger UI (development only; disabled in production) loads its assets from a CDN and
+# uses an inline script, so it gets a looser policy limited to those exact sources.
+DOCS_PATHS = frozenset({"/docs", "/docs/oauth2-redirect"})
+DOCS_CONTENT_SECURITY_POLICY = "; ".join(
+    (
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
+        "style-src 'self' https://cdn.jsdelivr.net",
+        "img-src 'self' data: https://fastapi.tiangolo.com",
+        "connect-src 'self'",
+        "object-src 'none'",
+        "frame-ancestors 'none'",
+    )
+)
+
 
 def security_headers(*, production: bool) -> dict[str, str]:
     """Return the headers to set, adding HSTS only in production (HTTPS)."""
@@ -49,6 +64,8 @@ def add_security_headers(app: FastAPI, *, production: bool) -> None:
         request: Request, call_next: Callable[[Request], Awaitable[Response]]
     ) -> Response:
         response = await call_next(request)
+        if not production and request.url.path in DOCS_PATHS:
+            response.headers["Content-Security-Policy"] = DOCS_CONTENT_SECURITY_POLICY
         for name, value in headers.items():
             response.headers.setdefault(name, value)
         return response
