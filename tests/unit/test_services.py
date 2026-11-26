@@ -56,6 +56,19 @@ async def test_air_quality_uses_cache(load_fixture: Loader) -> None:
 
 
 @respx.mock
+async def test_air_quality_works_without_weather(load_fixture: Loader) -> None:
+    respx.get(AIR_QUALITY_URL).mock(
+        return_value=httpx.Response(200, json=load_fixture("air_quality.json"))
+    )
+    respx.get(WEATHER_URL).mock(return_value=httpx.Response(429, text="Too many requests"))
+    async with httpx.AsyncClient() as client:
+        data, _ = await _air_service(client).get_air_data(28.61, 77.21)
+    assert data.current.pollutants.pm2_5 == 186.0
+    assert data.current.weather.wind_kmh is None
+    assert data.forecast[0].weather.temperature_c is None
+
+
+@respx.mock
 async def test_air_quality_http_error_raises_upstream_error() -> None:
     respx.get(AIR_QUALITY_URL).mock(return_value=httpx.Response(503))
     respx.get(WEATHER_URL).mock(return_value=httpx.Response(200, json={}))

@@ -6,6 +6,7 @@ Docs: https://open-meteo.com/en/docs/air-quality-api and https://open-meteo.com/
 from __future__ import annotations
 
 import asyncio
+import logging
 from datetime import datetime
 from typing import Any
 
@@ -14,6 +15,8 @@ import httpx
 from app.models.air import AirData, HourlyReading, Pollutants, Weather
 from app.services.cache import TTLCache
 from app.services.errors import UpstreamError
+
+logger = logging.getLogger(__name__)
 
 AIR_QUALITY_URL = "https://air-quality-api.open-meteo.com/v1/air-quality"
 WEATHER_URL = "https://api.open-meteo.com/v1/forecast"
@@ -72,32 +75,49 @@ class AirQualityService:
             "hourly": ",".join(_WEATHER_VARIABLES),
             "current": ",".join(_WEATHER_VARIABLES),
         }
-        air_json, weather_json = await asyncio.gather(
+        air_result, weather_result = await asyncio.gather(
             self._get_json(AIR_QUALITY_URL, air_params),
             self._get_json(WEATHER_URL, weather_params),
+            return_exceptions=True,
         )
+        if isinstance(air_result, BaseException):
+            raise air_result  # air quality is essential
+        air_json = air_result
+        # Weather only adds context (temperature, wind); never fail the dashboard without it.
+        weather_json: dict[str, Any] | None = None
+        if isinstance(weather_result, BaseException):
+            logger.warning("weather_unavailable detail=%s", weather_result)
+        else:
+            weather_json = weather_result
         try:
             return parse_air_data(lat, lon, air_json, weather_json)
         except (KeyError, TypeError, ValueError) as exc:
             raise UpstreamError("Unexpected air-quality response format") from exc
 
     async def _get_json(self, url: str, params: dict[str, Any]) -> dict[str, Any]:
+        host = httpx.URL(url).host
         try:
             response = await self._http.get(url, params=params)
-            response.raise_for_status()
+        except httpx.HTTPError as exc:
+            raise UpstreamError(f"{host}: {type(exc).__name__}") from exc
+        if response.status_code >= 400:
+            raise UpstreamError(f"{host}: HTTP {response.status_code} {response.text[:120]}")
+        try:
             return response.json()
-        except (httpx.HTTPError, ValueError) as exc:
-            raise UpstreamError(f"Request to {httpx.URL(url).host} failed") from exc
+        except ValueError as exc:
+            raise UpstreamError(f"{host}: invalid JSON") from exc
 
 
 def parse_air_data(
-    lat: float, lon: float, air_json: dict[str, Any], weather_json: dict[str, Any]
+    lat: float, lon: float, air_json: dict[str, Any], weather_json: dict[str, Any] | None
 ) -> AirData:
-    """Combine Open-Meteo air-quality and weather responses into ``AirData``.
+    """Combine Open-Meteo air-quality and (optional) weather responses into ``AirData``.
 
-    The forecast starts at the current hour and covers ``FORECAST_HOURS`` hours.
+    The forecast starts at the current hour and covers ``FORECAST_HOURS`` hours. Without
+    weather data, weather fields are left empty.
     """
-    weather_by_time = _weather_by_time(weather_json["hourly"])
+    weather_by_time = _weather_by_time(weather_json["hourly"]) if weather_json else {}
+    weather_now = (weather_json or {}).get("current") or {}
     air_hourly = air_json["hourly"]
     current_time = _parse_time(air_json["current"]["time"])
 
@@ -118,7 +138,7 @@ def parse_air_data(
     current = HourlyReading(
         time=current_time,
         pollutants=parse_pollutants({k: air_json["current"].get(k) for k in AIR_VARIABLES}),
-        weather=_weather({k: weather_json["current"].get(k) for k in _WEATHER_VARIABLES}),
+        weather=_weather({k: weather_now.get(k) for k in _WEATHER_VARIABLES}),
     )
     return AirData(
         lat=lat,
