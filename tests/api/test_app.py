@@ -43,6 +43,7 @@ def test_development_exposes_docs_with_docs_only_policy() -> None:
 def test_settings_ai_enabled_flag() -> None:
     assert Settings(anthropic_api_key="abc").ai_enabled is True
     assert Settings(anthropic_api_key="").ai_enabled is False
+    assert Settings(anthropic_api_key="your-anthropic-api-key-here").ai_enabled is False
 
 
 def test_api_key_is_not_revealed_in_repr() -> None:

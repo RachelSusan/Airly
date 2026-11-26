@@ -9,6 +9,9 @@ from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+PLACEHOLDER_API_KEY = "your-anthropic-api-key-here"  # value shipped in .env.example
+
+
 class Settings(BaseSettings):
     """Runtime configuration. Secrets never have defaults and are never logged."""
 
@@ -28,8 +31,11 @@ class Settings(BaseSettings):
 
     @property
     def ai_enabled(self) -> bool:
-        """True when an Anthropic API key is configured."""
-        return bool(self.anthropic_api_key and self.anthropic_api_key.get_secret_value())
+        """True when a real Anthropic API key is configured (not blank, not the placeholder)."""
+        if self.anthropic_api_key is None:
+            return False
+        key = self.anthropic_api_key.get_secret_value().strip()
+        return bool(key) and key != PLACEHOLDER_API_KEY
 
 
 @lru_cache

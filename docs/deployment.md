@@ -28,20 +28,21 @@ Open http://localhost:8000 (the API docs are at http://localhost:8000/docs in de
 
 ## 3. Production hosting
 
-Decision pending. Both options are documented; pick one and delete the other section.
+**Chosen: Render (free web service)**, defined in `render.yaml` (a Render Blueprint) at the repo root.
 
-### Option A: Render (free web service)
-- New Web Service, connect the GitHub repo, branch `main`.
-- Build: `pip install -r requirements.txt`
-- Start: `uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers`
-- Environment: `ANTHROPIC_API_KEY` (secret), `APP_ENV=production`
-- Health check path: `/api/health`
-- Note: free instances sleep when idle, so the first request after a sleep is slow. Wake it before recording the demo video.
+### Deploy with the Blueprint
+1. Sign in at https://dashboard.render.com with GitHub.
+2. **New → Blueprint**, pick the `BreatheWise` repository (branch `main`), then **Apply**.
+3. When asked for `ANTHROPIC_API_KEY`, paste the key, or leave it empty to run in rules-only mode. It can be added later under **Environment**.
+4. Wait for the build, then open the `https://breathewise-xxxx.onrender.com` URL and check `/api/health`.
 
-### Option B: Google Cloud Run (needs a billing account)
-- Uses a small `Dockerfile` (python:3.12-slim, non-root user).
-- `gcloud run deploy breathewise --source . --region asia-south1 --allow-unauthenticated --set-secrets ANTHROPIC_API_KEY=anthropic-key:latest --set-env-vars APP_ENV=production`
-- Store the key in Secret Manager, not as a plain environment variable.
+What `render.yaml` sets:
+- Python version from `.python-version` (3.13); build `pip install -r requirements.txt`
+- Start `uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers`, with `FORWARDED_ALLOW_IPS=*` so rate limits see the visitor's IP behind Render's proxy
+- `APP_ENV=production` (API docs off, HSTS on), health check `/api/health`, auto-deploy on every push to `main`
+- Region Singapore (closest free region to India)
+
+**Free-tier note:** the service sleeps after about 15 minutes idle; the first visit after that takes 30–60 seconds. Open the site a minute before judging or recording the video.
 
 ## 4. Production checklist
 

@@ -1,0 +1,26 @@
+# Render Blueprint: one free web service built from this repo's main branch.
+# Docs: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: breathewise
+    runtime: python
+    plan: free
+    region: singapore
+    branch: main
+    autoDeploy: true
+    buildCommand: pip install -r requirements.txt
+    # --proxy-headers (with FORWARDED_ALLOW_IPS below) so rate limiting sees the visitor's IP
+    # behind Render's proxy.
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers
+    healthCheckPath: /api/health
+    envVars:
+      - key: FORWARDED_ALLOW_IPS
+        value: "*"
+      - key: APP_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      # Secret: set it in the Render dashboard, never in this file.
+      # Leave empty to run in rules-only mode.
+      - key: ANTHROPIC_API_KEY
+        sync: false
