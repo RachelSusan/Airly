@@ -205,6 +205,9 @@ fieldset.field { border: 0; padding: 0; margin: 0 0 var(--space-4); }
 /* ================= Location chip ================= */
 .view-location { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin: 0 0 var(--space-6); color: var(--color-text-muted); }
 .view-location__pin { color: var(--color-primary); }
+.view-location__sep { color: var(--color-border); }
+.view-location__clock { display: inline-flex; align-items: center; gap: var(--space-1); font-weight: 600; color: var(--color-ink); font-variant-numeric: tabular-nums; }
+.view-location__clock::before { content: "🕒"; font-weight: 400; }
 
 /* ================= AQI summary ================= */
 .aqi-hero { display: grid; gap: var(--space-4); }

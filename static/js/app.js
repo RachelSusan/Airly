@@ -2,6 +2,7 @@
 import { api } from "./api.js";
 import { CITIES, COUNTRY, findCity, nearestCity } from "./cities.js";
 import { h, render } from "./dom.js";
+import { liveClock } from "./clock.js";
 import { mountScene, updateScene } from "./scene.js";
 import { store } from "./store.js";
 import { renderDashboard } from "./views/dashboard.js";
@@ -9,6 +10,8 @@ import { renderPlanner } from "./views/planner.js";
 import { renderFamily } from "./views/family.js";
 import { renderAssistant } from "./views/assistant.js";
 import { renderSimulator } from "./views/simulator.js";
+
+const INDIA_TIME_ZONE = "Asia/Kolkata"; // all listed cities are in India
 
 const VIEWS = {
   dashboard: { title: "Air now", render: renderDashboard, needsLocation: true },
@@ -66,6 +69,8 @@ function showLocationChip(loc) {
     chip,
     h("span", { class: "view-location__pin", "aria-hidden": "true" }, "📍"),
     h("span", {}, `Using live data for ${locationLabel(loc)}`),
+    h("span", { class: "view-location__sep", "aria-hidden": "true" }, "·"),
+    h("span", { class: "view-location__clock" }, h("span", { class: "visually-hidden" }, "Local time: "), liveClock(loc.timezone)),
     h(
       "button",
       {
@@ -152,11 +157,11 @@ function placeLabel(place) {
 }
 
 function placeToLocation(place) {
-  return { name: placeLabel(place), lat: place.lat, lon: place.lon };
+  return { name: placeLabel(place), lat: place.lat, lon: place.lon, timezone: place.timezone || null };
 }
 
 function cityToLocation(city) {
-  return { name: city.name, lat: city.lat, lon: city.lon };
+  return { name: city.name, lat: city.lat, lon: city.lon, timezone: INDIA_TIME_ZONE };
 }
 
 /** Location object for GPS coordinates, named after the nearest listed city if close. */

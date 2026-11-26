@@ -1,7 +1,9 @@
 // Live AQI dashboard: current conditions, best windows and 24-hour forecast.
 import { api } from "../api.js";
 import { h, render } from "../dom.js";
+import { setClockZone } from "../clock.js";
 import { updateScene } from "../scene.js";
+import { store } from "../store.js";
 import { airMapSection } from "./airmap.js";
 import { trendsSection } from "./trends.js";
 import {
@@ -22,6 +24,10 @@ export async function renderDashboard(root, state) {
   render(root, h("div", { class: "skeleton", "aria-busy": "true", "aria-label": "Loading air quality" }));
   try {
     const data = await api.air(state.location);
+    if (data.timezone && data.timezone !== state.location.timezone) {
+      store.update({ location: { ...state.location, timezone: data.timezone } });
+      setClockZone(data.timezone);
+    }
     updateScene({
       city: state.location.name,
       category: data.current.category,
