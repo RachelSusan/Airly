@@ -33,7 +33,7 @@ Airly is a single **FastAPI** service. It serves a static, framework-free fronte
 ## 2. Folder structure
 
 ```
-BreatheWise/            (repository root; the app is called Airly)
+Airly/
 ├── app/
 │   ├── main.py              # App factory: middleware, routers, static files
 │   ├── config.py            # Settings from environment (pydantic-settings)

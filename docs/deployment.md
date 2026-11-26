@@ -33,7 +33,7 @@ Open http://localhost:8000 (the API docs are at http://localhost:8000/docs in de
 
 ### Deploy with the Blueprint
 1. Sign in at https://dashboard.render.com with GitHub.
-2. **New → Blueprint**, pick the `BreatheWise` repository (the GitHub repo keeps its original name; branch `main`), then **Apply**.
+2. **New → Blueprint**, pick the `Airly` repository (branch `main`), then **Apply**.
 3. When asked for `GEMINI_API_KEY`, paste the key, or leave it empty to run in rules-only mode. It can be added later under **Environment**.
 4. Wait for the build, then open the `https://airly-xxxx.onrender.com` URL and check `/api/health`.
 
