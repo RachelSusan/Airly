@@ -7,9 +7,10 @@ from collections.abc import Awaitable, Callable
 from fastapi import FastAPI, Request, Response
 
 # Leaflet (map library) is loaded from unpkg pinned to one version with Subresource Integrity;
-# map tiles come from OpenStreetMap. Nothing else outside our origin is allowed.
+# map tiles come from OpenStreetMap and Esri. Nothing else outside our origin is allowed.
 MAP_LIBRARY_ORIGIN = "https://unpkg.com"
-MAP_TILE_ORIGIN = "https://tile.openstreetmap.org"
+# Map tiles: OpenStreetMap (streets) and Esri World Imagery + place labels (satellite).
+MAP_TILE_ORIGIN = "https://tile.openstreetmap.org https://server.arcgisonline.com"
 # Web fonts (Manrope, Nunito Sans) from Google Fonts.
 FONT_CSS_ORIGIN = "https://fonts.googleapis.com"
 FONT_FILE_ORIGIN = "https://fonts.gstatic.com"
@@ -76,4 +77,10 @@ def add_security_headers(app: FastAPI, *, production: bool) -> None:
             response.headers["Content-Security-Policy"] = DOCS_CONTENT_SECURITY_POLICY
         for name, value in headers.items():
             response.headers.setdefault(name, value)
+        # Always revalidate the frontend files (cheap 304s via ETag) so updates show at once;
+        # API responses are never cached by the browser.
+        if request.url.path.startswith("/api/"):
+            response.headers.setdefault("Cache-Control", "no-store")
+        else:
+            response.headers.setdefault("Cache-Control", "no-cache")
         return response

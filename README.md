@@ -100,7 +100,7 @@ City photos are from [Unsplash](https://unsplash.com) under the [Unsplash Licens
 | Chennai (Central station) | [@angelphotos](https://unsplash.com/@angelphotos) |
 | Other cities (green city view) | [@bendp](https://unsplash.com/@bendp) |
 
-Maps © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors, drawn with [Leaflet](https://leafletjs.com).
+Maps: satellite imagery and labels © Esri, Maxar, Earthstar Geographics; street map © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors; drawn with [Leaflet](https://leafletjs.com).
 
 ## Disclaimer
 

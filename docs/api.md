@@ -71,7 +71,7 @@ Base path: `/api` · Format: JSON (UTF-8) · Interactive docs at `/docs` in deve
 ```
 
 ## `GET /api/air/grid?lat={lat}&lon={lon}`
-Current AQI on a 5×5 grid (0.1° ≈ 11 km apart) around the location, from one Open-Meteo request. Used for the neighbourhood map.
+Current AQI on a 7×7 grid (0.1° ≈ 11 km apart) around the location, from one Open-Meteo request. Used for the neighbourhood map.
 ```json
 {
   "center": { "lat": 28.61, "lon": 77.21, "name": null },
@@ -82,6 +82,13 @@ Current AQI on a 5×5 grid (0.1° ≈ 11 km apart) around the location, from one
 }
 ```
 Cells without particulate data are left out. If none are usable, the response is `503`.
+
+## `POST /api/air/points`
+Current AQI at up to 80 points in one upstream request, returned in the same order. Used for the "Show other cities" map layer.
+```json
+{ "points": [ { "lat": 28.61, "lon": 77.21 }, { "lat": 19.08, "lon": 72.88 } ] }
+```
+Response: `{ "cells": [ { "lat": 28.61, "lon": 77.21, "aqi": 141, "category": "moderate", ... }, null ], "stale": false }`. A point without particulate data is `null`.
 
 ## `POST /api/plan`
 **Request**

@@ -346,13 +346,21 @@ details summary { cursor: pointer; font-weight: 600; min-height: 44px; display: 
 .compare__value { font-weight: 700; font-size: var(--fs-small); white-space: nowrap; }
 
 /* ================= Map ================= */
-.air-map { height: 420px; border-radius: var(--radius-sm); margin-bottom: var(--space-3); background: var(--color-surface-3); }
-@media (max-width: 600px) { .air-map { height: 300px; } }
-.map-legend { list-style: none; margin: 0 0 var(--space-3); padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); font-size: var(--fs-small); }
-.map-legend li { display: inline-flex; align-items: center; gap: var(--space-2); }
-.map-legend__swatch { width: 16px; height: 16px; border-radius: 4px; opacity: 0.85; }
-.map-legend__you { width: 14px; height: 14px; border-radius: 50%; border: 3px solid var(--color-ink); background: #ffffff; }
-.map-popup { font: inherit; display: grid; gap: var(--space-1); }
+.map-head { align-items: flex-end; margin-bottom: var(--space-4); }
+.map-head .card__title { margin: 0; }
+.air-map { height: 460px; border-radius: var(--radius-md); margin-bottom: var(--space-4); background: var(--color-surface-3); overflow: hidden; }
+@media (max-width: 600px) { .air-map { height: 340px; } }
+.air-heat { image-rendering: auto; filter: blur(4px) saturate(1.15); }
+.leaflet-control-layers { border-radius: var(--radius-sm); font-size: var(--fs-small); }
+.map-legend { margin: 0 0 var(--space-4); max-width: 560px; }
+.map-legend__scale {
+  height: 10px; border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, #2e9e5b 0%, #2e9e5b 10%, #8bc34a 20%, #f2c200 40%, #f08c00 60%, #d93025 80%, #7e1f3b 100%);
+}
+.map-legend__labels { list-style: none; margin: var(--space-2) 0 0; padding: 0; display: flex; justify-content: space-between; gap: var(--space-2); font-size: 0.75rem; color: var(--color-text-muted); }
+.map-popup { font: inherit; display: grid; gap: var(--space-1); min-width: 160px; }
+.leaflet-container { font-family: var(--font-sans); }
+.leaflet-popup-content-wrapper { border-radius: var(--radius-sm); }
 
 /* ================= Loading ================= */
 .skeleton {

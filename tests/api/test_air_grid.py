@@ -32,3 +32,29 @@ def test_grid_upstream_failure_is_503(make_client: MakeClient) -> None:
 
 def test_grid_validates_coordinates(make_client: MakeClient) -> None:
     assert make_client().get("/api/air/grid", params={"lat": 1, "lon": 500}).status_code == 422
+
+
+def test_points_returns_aqi_in_order_with_nulls(make_client: MakeClient) -> None:
+    body = {
+        "points": [{"lat": 28.61, "lon": 77.21}, {"lat": 19.08, "lon": 72.88}, {"lat": 1, "lon": 1}]
+    }
+    response = make_client().post("/api/air/points", json=body)
+    assert response.status_code == 200
+    cells = response.json()["cells"]
+    assert [c and c["aqi"] for c in cells] == [351, 67, None]  # third has no particulates
+    assert cells[1]["lat"] == 19.08
+
+
+def test_points_limits(make_client: MakeClient) -> None:
+    client = make_client()
+    assert client.post("/api/air/points", json={"points": []}).status_code == 422
+    many = {"points": [{"lat": 1, "lon": 1}] * 81}
+    assert client.post("/api/air/points", json=many).status_code == 422
+    bad = {"points": [{"lat": 100, "lon": 1}]}
+    assert client.post("/api/air/points", json=bad).status_code == 422
+
+
+def test_points_upstream_failure_is_503(make_client: MakeClient) -> None:
+    client = make_client(grid=FakeGrid(None))
+    response = client.post("/api/air/points", json={"points": [{"lat": 1, "lon": 1}]})
+    assert response.status_code == 503

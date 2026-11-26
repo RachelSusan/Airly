@@ -50,6 +50,14 @@ class FakeGrid:
             raise UpstreamError("down")
         return self.points, False
 
+    async def get_points(self, points: list[tuple[float, float]]) -> tuple[list[GridPoint], bool]:
+        if self.points is None:
+            raise UpstreamError("down")
+        return [
+            GridPoint(lat=lat, lon=lon, pollutants=self.points[i % len(self.points)].pollutants)
+            for i, (lat, lon) in enumerate(points)
+        ], False
+
 
 DEFAULT_GRID = [
     GridPoint(lat=28.61, lon=77.21, pollutants=Pollutants(pm2_5=186.0)),

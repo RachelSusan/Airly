@@ -11,6 +11,7 @@ from app.engine.aqi import InsufficientDataError, aqi_series, compute_aqi
 from app.engine.facts import NoAirDataError, current_point
 from app.engine.risk import Sensitivity, outdoor_guidance
 from app.engine.windows import Activity, TimeWindow, best_window
+from app.models.air import GridPoint
 from app.models.api import (
     AirGridResponse,
     AirResponse,
@@ -19,6 +20,8 @@ from app.models.api import (
     GeocodeResponse,
     GridCell,
     Location,
+    PointsRequest,
+    PointsResponse,
     WindowOut,
 )
 from app.services.air_grid import GRID_STEP_DEG, AirGridService
@@ -94,23 +97,7 @@ async def air_grid(
 ) -> AirGridResponse:
     """Current AQI on a grid around the location, for the neighbourhood map."""
     points, stale = await service.get_grid(lat, lon)
-    cells = []
-    for point in points:
-        try:
-            result = compute_aqi(point.pollutants.as_mapping())
-        except InsufficientDataError:
-            continue
-        cells.append(
-            GridCell(
-                lat=point.lat,
-                lon=point.lon,
-                aqi=result.aqi,
-                category=result.category,
-                label=result.category.label,
-                dominant=result.dominant,
-                pm2_5=point.pollutants.pm2_5,
-            )
-        )
+    cells = [cell for cell in map(_cell, points) if cell is not None]
     if not cells:
         raise NoAirDataError("No grid data")
     return AirGridResponse(
@@ -119,6 +106,35 @@ async def air_grid(
         cells=cells,
         stale=stale,
         note=GRID_NOTE,
+    )
+
+
+@router.post("/air/points")
+async def air_points(
+    body: PointsRequest,
+    service: Annotated[AirGridService, Depends(get_grid_service)],
+) -> PointsResponse:
+    """Current AQI at up to 80 points (e.g. other cities), in request order.
+
+    A point without particulate data is returned as ``null``.
+    """
+    points, stale = await service.get_points([(p.lat, p.lon) for p in body.points])
+    return PointsResponse(cells=[_cell(point) for point in points], stale=stale)
+
+
+def _cell(point: GridPoint) -> GridCell | None:
+    try:
+        result = compute_aqi(point.pollutants.as_mapping())
+    except InsufficientDataError:
+        return None
+    return GridCell(
+        lat=point.lat,
+        lon=point.lon,
+        aqi=result.aqi,
+        category=result.category,
+        label=result.category.label,
+        dominant=result.dominant,
+        pm2_5=point.pollutants.pm2_5,
     )
 
 

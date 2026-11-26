@@ -47,7 +47,7 @@ Set by `app/security/headers.py` on every response:
 Content-Security-Policy: default-src 'self'; script-src 'self' https://unpkg.com;
                          style-src 'self' https://unpkg.com https://fonts.googleapis.com;
                          font-src 'self' https://fonts.gstatic.com;
-                         img-src 'self' data: https://tile.openstreetmap.org https://unpkg.com;
+                         img-src 'self' data: https://tile.openstreetmap.org https://server.arcgisonline.com https://unpkg.com;
                          connect-src 'self'; object-src 'none'; base-uri 'self';
                          frame-ancestors 'none'; form-action 'self'
 X-Content-Type-Options: nosniff
@@ -58,7 +58,7 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains   (production, HT
 ```
 
 - **No inline scripts or styles**, so the CSP can stay strict.
-- The map library (Leaflet 1.9.4) loads from unpkg **pinned to one version with Subresource Integrity hashes**, so a changed file is refused by the browser. Map tiles come from OpenStreetMap (attribution shown). If the library can't load, the map hides and the text summary still works.
+- The map library (Leaflet 1.9.4) loads from unpkg **pinned to one version with Subresource Integrity hashes**, so a changed file is refused by the browser. Map tiles come from OpenStreetMap (streets) and Esri World Imagery (satellite), with attribution shown. If the library can't load, the map hides and the text summary still works.
 - Map popups and tooltips are built as DOM nodes, never HTML strings.
 - CORS: same-origin only. No wildcard origins.
 - `/docs` and `/openapi.json` are turned off in production.
@@ -67,7 +67,7 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains   (production, HT
 
 - Dynamic text (AI replies, names, city names) is rendered with `textContent` or created DOM nodes. **Never `innerHTML`** with untrusted data.
 - AI replies are plain text. If light formatting is needed, a tiny allowlist renderer handles **bold** and line breaks only.
-- No third-party scripts or analytics. The only external resources are Leaflet (SRI-pinned), OpenStreetMap tiles and Google Fonts (Manrope, Nunito Sans). Fonts fall back to system fonts if blocked.
+- No third-party scripts or analytics. The only external resources are Leaflet (SRI-pinned), map tiles (OpenStreetMap streets, Esri satellite imagery and labels) and Google Fonts (Manrope, Nunito Sans). Fonts fall back to system fonts if blocked.
 
 ## 7. AI safety and prompt-injection defence
 

@@ -37,6 +37,7 @@ export const api = {
     request(`/api/geocode?q=${encodeURIComponent(q)}${country ? `&country=${country}` : ""}`),
   air: ({ lat, lon }) => request(`/api/air?lat=${lat}&lon=${lon}`),
   grid: ({ lat, lon }) => request(`/api/air/grid?lat=${lat}&lon=${lon}`),
+  points: (points) => request("/api/air/points", { method: "POST", body: { points } }),
   plan: (body) => request("/api/plan", { method: "POST", body }),
   chat: (body) => request("/api/chat", { method: "POST", body }),
   scenarios: () => request("/api/scenarios"),

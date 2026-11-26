@@ -94,6 +94,20 @@ class GridCell(BaseModel):
     pm2_5: float | None
 
 
+class Point(_Strict):
+    lat: float = Field(ge=-90, le=90)
+    lon: float = Field(ge=-180, le=180)
+
+
+class PointsRequest(_Strict):
+    points: list[Point] = Field(min_length=1, max_length=80)
+
+
+class PointsResponse(BaseModel):
+    cells: list[GridCell | None]
+    stale: bool
+
+
 class AirGridResponse(BaseModel):
     center: Location
     step_deg: float
