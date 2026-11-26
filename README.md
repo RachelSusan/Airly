@@ -3,7 +3,9 @@
 > A GenAI-powered assistant that helps families and communities get through severe winter smog and urban air pollution. It plans safer daily routines, protects every family member, and explains what each choice changes.
 
 **Challenge:** PromptWars Virtual, Challenge 6: Urban Air Quality Assistant
-**Live demo:** _TBD_ · **Demo video:** _TBD_
+**Live demo:** https://airly.onrender.com · **Demo video:** _TBD_
+
+> Hosted on Render's free plan: after about 15 minutes without visitors the app sleeps, so the first visit can take 30–60 seconds to wake it up.
 
 ---
 
