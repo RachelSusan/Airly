@@ -16,10 +16,10 @@
 | Module | What it does |
 |---|---|
 | **1. AI Air Quality Assistant** | Ask in plain language: *"Is it safe to go jogging now?"*, *"Can my children play outside today?"*, *"Should I open my windows?"*. Answers use live AQI, weather and your family profile, in simple language. |
-| **2. Smart Daily Routine Planner** | Finds the cleanest hours for walking, jogging, commuting and school outdoor time. Suggests indoor alternatives and updates when the AQI forecast changes. |
-| **3. Family Protection Profiles** | One profile per family member (age group, asthma or other conditions). Each member gets their own risk level, children's outdoor alerts and a daily protection checklist. |
+| **2. Smart Daily Routine Planner** | Finds the cleanest hours for walking, jogging, commuting and school outdoor time, with a separate plan for each family member. Suggests indoor alternatives and highlights changes when the forecast updates. |
+| **3. Family Protection Profiles** | One profile per person: relationship, age group, health conditions, outdoor activities, **their own travel** (mode, distance, departure time) and **school or college hours**. Each member gets their own risk level, alerts, best times, travel advice and a daily protection checklist. |
 | **4. What-If Pollution Simulator** | Try scenarios such as *"What if I switch from petrol to public transport?"* or *"What if 1,000 families drive less?"*. It shows **estimated emission changes**, never promises about local AQI. |
-| **Core** | Live dashboard (AQI, PM2.5, PM10, NO₂, O₃, weather), city search or GPS, indoor air tips, sustainable alternatives with their impact. |
+| **Core** | Live dashboard (AQI, PM2.5, PM10, NO₂, O₃, weather) with a live local clock; 62 Indian cities to pick from, India-wide search or GPS; a satellite **air map** with a smooth pollution layer and an "other cities" view; a 24-hour forecast; a **week / month trend**; indoor air tips and sustainable alternatives with their impact. All times are local, 12-hour. |
 
 ## Approach and logic
 
@@ -39,17 +39,19 @@ User + family profile ───────────────────�
 
 ## How it works
 
-1. The user picks a city (or shares location) and adds family members.
-2. The dashboard shows the current AQI and a 24-hour forecast with safe, caution and avoid windows.
-3. The planner builds a day plan and a checklist for each member.
+1. The user picks a city (or shares location) and adds family members with their travel and school hours.
+2. The dashboard shows the current AQI, the air map, a 24-hour forecast with safe, caution and avoid windows, and the week / month trend.
+3. The planner builds a day plan for the household and a personal plan and checklist for each member.
 4. The assistant answers follow-up questions using live data.
 5. The simulator shows how much a habit change cuts emissions and personal exposure.
 
 ## Assumptions
 
 - Air-quality and weather data come from the Open-Meteo APIs (modelled data, not a government monitoring station).
-- AQI follows India's **NAQI (CPCB)** categories, calculated from hourly concentrations. The official index uses 24-hour or 8-hour averages, so ours is a close estimate.
-- Emission factors and exposure-reduction figures are published averages. See [docs/impact_methodology.md](docs/impact_methodology.md).
+- AQI follows India's **NAQI (CPCB)** categories. The hourly view uses hourly concentrations (a close estimate; the official index uses 24-hour or 8-hour averages). The week / month trend uses each day's average concentrations, which matches the official 24-hour method more closely.
+- Emission factors were checked against published sources in November 2026. Each one is labelled **Good** or **Estimate** in [docs/impact_methodology.md](docs/impact_methodology.md); results are shown as estimates and never as changes to local AQI.
+- The map shows modelled regional air quality (about 10–40 km resolution), not street-level readings.
+- Gemini's free tier can be busy. Airly tries a fast model first, switches to backups automatically, and falls back to rule-based answers within about 40 seconds.
 - Family profiles stay **in the user's browser**. The server keeps no personal data.
 - AI answers come from Google Gemini's free tier, where Google may use prompts to improve its products. Airly sends only rounded location, age groups, conditions and an optional nickname: never email, phone numbers or addresses.
 - This is guidance, not medical advice.

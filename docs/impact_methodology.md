@@ -4,7 +4,7 @@ How Airly calculates AQI, risk, exposure and emission impacts. All of these are 
 
 > **Honesty rule:** the simulator reports **estimated emission changes** and **personal exposure changes**. It never predicts a change in local AQI, which depends on regional weather, transport of pollution and thousands of sources.
 
-> **Status:** the factor values below are working defaults for the build. Each one **must be checked against its source** before final submission, and `docs/tasks.md` tracks this. If a value changes, update the table, the code constant and the tests together.
+> **Status (checked 26 Nov 2026):** each factor below lists its source and how confident we are. The official India GHG Program tables are published as a scanned PDF that could not be read as text, so two values come from secondary sources and fuel-economy calculations; they are marked **Estimate**. If a value changes, update this table, the constant in `app/engine/impact.py` and the tests together.
 
 ## 1. AQI: Indian National Air Quality Index (CPCB)
 
@@ -84,24 +84,32 @@ Source: US EPA *Exposure Factors Handbook* (2011), ch. 6 (rounded mid-range valu
 
 ## 5. Emission factors (per km)
 
-`distance_km` in the API is **one-way**. Commutes are counted as a round trip (×2). One year = 52 weeks.
+`distance_km` in the API is **one way**. Commutes are counted as a round trip (×2). One year = 52 weeks.
 
-| Mode | CO₂ (kg/km) | PM2.5 (g/km)* | NOₓ (g/km) | Basis |
-|---|---|---|---|---|
-| Petrol car | 0.170 | 0.012 | 0.060 | Per vehicle-km, single occupant |
-| Diesel car | 0.170 | 0.015 | 0.080 | Per vehicle-km |
-| CNG car | 0.130 | 0.010 | 0.050 | Per vehicle-km |
-| Electric car | 0.110 | 0.008 | 0.000 | Grid electricity (about 0.71 kg CO₂/kWh × 0.15 kWh/km); PM is non-exhaust only |
-| Petrol two-wheeler | 0.045 | 0.006 | 0.060 | Per vehicle-km |
-| Electric two-wheeler | 0.021 | 0.003 | 0.000 | Grid (0.71 × 0.03 kWh/km) |
-| CNG auto-rickshaw | 0.070 | 0.008 | 0.050 | Per vehicle-km, shared → ÷ 1.5 passengers |
-| Bus | 0.030 | 0.002 | 0.050 | Per passenger-km |
-| Metro | 0.030 | 0.001 | 0.000 | Per passenger-km (grid) |
-| Walk / cycle | 0 | 0 | 0 | |
+| Mode | CO₂ (kg/km) | PM2.5 (g/km)* | NOₓ (g/km) | Basis | Source and confidence |
+|---|---|---|---|---|---|
+| Petrol car | 0.140 | 0.012 | 0.060 | Per vehicle-km, one occupant | India GHG Program (2015) lists petrol-car factors of about 0.103–0.140 kg/km (by engine size, with real-world uplift). Cross-check: 2.27 kg CO₂/L ÷ ~16 km/L ≈ 0.142. **Good** |
+| Diesel car | 0.150 | 0.015 | 0.080 | Per vehicle-km | 2.64 kg CO₂/L (India GHG Program) ÷ ~18 km/L. NOₓ = BS-VI diesel limit (80 mg/km). **Estimate** |
+| CNG car | 0.120 | 0.010 | 0.050 | Per vehicle-km | 2.69 kg CO₂/kg CNG ÷ ~22 km/kg. **Estimate** |
+| Electric car | 0.119 | 0.008 | 0 | Grid electricity | 0.15 kWh/km × 0.79 kg CO₂/kWh (CEA grid factor, FY 2019-20). PM is tyre/brake/road dust only. **Estimate** |
+| Petrol two-wheeler | 0.036 | 0.006 | 0.060 | Per vehicle-km | India GHG Program: motorcycle under 100 cc 0.0325 kg/km (0.0358 with 10% uplift). **Good** |
+| Electric two-wheeler | 0.024 | 0.003 | 0 | Grid electricity | 0.03 kWh/km × 0.79. **Estimate** |
+| CNG auto-rickshaw | 0.100 ÷ 1.5 | 0.008 ÷ 1.5 | 0.050 ÷ 1.5 | Per passenger-km (1.5 riders) | 2.69 kg CO₂/kg ÷ ~27 km/kg. **Estimate** |
+| Bus | 0.030 | 0.002 | 0.050 | Per passenger-km | TERI: about 29.5 g CO₂ per passenger-km in Delhi. **Good** |
+| Metro | 0.030 | 0.001 | 0 | Per passenger-km | No official per-passenger-km figure found. DMRC/TERI report metro saves about 32 g CO₂ per km compared with road travel, consistent with a low value. **Estimate** |
+| Walk / cycle | 0 | 0 | 0 | | |
 
-\* PM2.5 includes non-exhaust (brake, tyre and road dust) estimates, which are a large share of traffic PM in Indian cities.
+\* PM2.5 includes BS-VI exhaust limits (4.5 mg/km) plus non-exhaust estimates (brake, tyre, road dust), which dominate traffic PM in Indian cities. NOₓ for petrol vehicles is the BS-VI limit (60 mg/km). All PM2.5 and NOₓ factors are **estimates**.
 
-**Sources to verify:** India GHG Program, *India Specific Road Transport Emission Factors* (2015); CEA, *CO₂ Baseline Database for the Indian Power Sector* (grid factor); ICCT India briefs; BS-VI type-approval limits; DMRC sustainability reports.
+**Grid factor note:** CEA publishes a new CO₂ Baseline Database each year. FY 2019-20 is the most recent weighted-average figure we could confirm (0.79 t CO₂/MWh). Newer, lower values would make electric options look slightly better.
+
+**Trees:** about 21 kg CO₂ per mature tree per year is a widely used average; published estimates range from about 10 to 40 kg depending on species, age and climate. **Estimate.** Young trees absorb much less.
+
+Sources:
+- India GHG Program / WRI, *India Specific Road Transport Emission Factors* (2015): https://indiaghgp.org/node/234
+- CEA, *CO₂ Baseline Database for the Indian Power Sector*: https://cea.nic.in
+- TERI, *Per-passenger emission in Delhi, different modes*: https://teriin.org/sites/default/transport/Per_passenger_emission_in_Delhi_Different_Modes.pdf
+- DMRC CarbonLite initiative (32.38 g CO₂ saved per km): https://www.business-standard.com/india-news/dmrc-to-make-passengers-aware-about-co2-emissions-reduction-due-to-metro-123080900684_1.html
 
 ## 6. Scenario formulas
 
@@ -111,7 +119,7 @@ annual_km = distance_km × 2 × days_per_week × 52
 Δ = (EF_to − EF_from) × annual_km          (per pollutant)
 ```
 Example: 12 km, 5 days a week, petrol car to metro. annual_km = 6,240.
-CO₂ Δ = (0.030 − 0.170) × 6,240 = **−873.6 kg/year**; PM2.5 Δ = (0.001 − 0.012) × 6,240 = **−68.6 g**; NOₓ Δ = −374.4 g.
+CO₂ Δ = (0.030 − 0.140) × 6,240 = **−686.4 kg/year**; PM2.5 Δ = (0.001 − 0.012) × 6,240 = **−68.6 g**; NOₓ Δ = −374.4 g.
 
 ### `families_reduce_driving`
 ```

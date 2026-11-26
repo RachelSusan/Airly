@@ -32,7 +32,7 @@ Legend: `[ ]` to do Â· `[x]` done Â· `[~]` in progress
 - [ ] **Submission 1** (baseline, all modules working)
 
 ## Day 3: 28 Nov: Polish and proof
-- [ ] Verify every emission factor and its source (`impact_methodology.md`)
+- [x] Checked every emission factor against sources; values updated and confidence marked (`impact_methodology.md`)
 - [ ] School activity planner and auto-refresh change highlights
 - [ ] Security checklist (`security.md` Â§11) and `pip-audit`
 - [ ] Coverage â‰¥ 80%; Lighthouse a11y â‰¥ 95

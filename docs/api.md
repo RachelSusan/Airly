@@ -126,7 +126,7 @@ Response: `{ "cells": [ { "lat": 28.61, "lon": 77.21, "aqi": 141, "category": "m
   "routine": [
     { "activity": "jogging", "start": "14:00", "end": "15:00", "advice": "caution", "why": "Lowest PM2.5 of the day (~95 µg/m³).", "impact": "About 47% less PM2.5 inhaled than a 7 AM run." }
   ],
-  "commute": { "recommended_departure": "10:00", "why": "...", "alternative_mode": "metro", "alternative_impact": "Saves about 874 kg CO₂ a year (estimate)." },
+  "commute": { "recommended_departure": "10:00", "why": "...", "alternative_mode": "metro", "alternative_impact": "Saves about 686 kg CO₂ a year (estimate)." },
   "school": [ { "slot": "Outdoor time 11:00-12:00", "advice": "avoid", "alternative": "Indoor games" } ],
   "indoor_tips": [ { "tip": "Keep windows closed until 2 PM", "why": "...", "impact": "..." } ],
   "sustainable_choices": [ { "tip": "Try the metro for your commute", "why": "...", "impact": "..." } ],
@@ -173,14 +173,14 @@ Lists the preset scenarios with their input schemas and defaults.
   "scenario_id": "petrol_to_public",
   "result": {
     "period": "year",
-    "co2_kg": -873.6,
+    "co2_kg": -686.4,
     "pm25_g": -68.6,
     "nox_g": -374.4,
     "exposure_change_pct": null,
-    "baseline_co2_kg": 1060.8
+    "baseline_co2_kg": 873.6
   },
-  "explanation": "Switching your 12 km commute from a petrol car to the metro avoids about 870 kg of CO₂ a year...",
-  "assumptions": ["Petrol car: 0.170 kg CO₂/km (...)", "Metro: 0.030 kg CO₂/passenger-km (...)", "..."],
+  "explanation": "Switching your 12 km commute from a petrol car to the metro avoids about 690 kg of CO₂ a year...",
+  "assumptions": ["Petrol car: 0.140 kg CO₂/km (...)", "Metro: 0.030 kg CO₂/passenger-km (...)", "..."],
   "sources": ["..."],
   "disclaimer": "These are estimated emission changes. They do not predict changes in your local AQI."
 }
