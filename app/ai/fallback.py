@@ -34,7 +34,8 @@ _MODE_LABELS = {
 def plan(facts: dict[str, Any]) -> PlanContent:
     """Build a complete plan directly from the facts."""
     now = facts["now"]
-    routine = _routine(facts["best_windows"])
+    today = facts.get("today")
+    routine = _routine(facts["best_windows"], today)
     jog = facts.get("jog_exposure")
     if jog and routine:
         for item in routine:
@@ -63,7 +64,7 @@ def plan(facts: dict[str, Any]) -> PlanContent:
                 member_id=m["member_id"],
                 risk_level=m["risk_level"],
                 alerts=m["alerts"],
-                routine=_routine(m.get("activity_windows") or {}),
+                routine=_routine(m.get("activity_windows") or {}, today),
                 commute=_commute(m.get("commute")),
                 school=_school(m.get("school")),
                 checklist=[ChecklistOut(**item) for item in m["checklist"]],
@@ -73,11 +74,17 @@ def plan(facts: dict[str, Any]) -> PlanContent:
     )
 
 
-def _routine(windows: dict[str, Any]) -> list[RoutineItem]:
+def _on(window: dict[str, Any], today: str | None) -> str:
+    """Prefix the start time with the day when the window is not today."""
+    day = window.get("day")
+    return f"{day}, {window['start']}" if day and today and day != today else window["start"]
+
+
+def _routine(windows: dict[str, Any], today: str | None = None) -> list[RoutineItem]:
     return [
         RoutineItem(
             activity=_ACTIVITY_LABELS.get(name, name),
-            start=w["start"],
+            start=_on(w, today),
             end=w["end"],
             advice=w["advice"],
             why=f"Cleanest hour for this: AQI {w['avg_aqi']} ({w['category']}).",
@@ -198,11 +205,11 @@ def chat_reply(question: str, facts: dict[str, Any]) -> str:
         extra = f" Best time to air out: about {v['airing_time']}." if v["airing_time"] else ""
         return f"{answer} {v['reason']}{extra}"
     if any(word in q for word in ("kid", "child", "play", "school")):
-        return f"{lead} {_window_sentence(windows.get('play'), 'outdoor play')}"
+        return f"{lead} {_window_sentence(windows.get('play'), 'outdoor play', facts.get('today'))}"
     if any(word in q for word in ("jog", "run", "exercise", "workout")):
-        return f"{lead} {_window_sentence(windows.get('jog'), 'a jog')}"
+        return f"{lead} {_window_sentence(windows.get('jog'), 'a jog', facts.get('today'))}"
     if any(word in q for word in ("walk", "outside", "outdoor")):
-        return f"{lead} {_window_sentence(windows.get('walk'), 'a walk')}"
+        return f"{lead} {_window_sentence(windows.get('walk'), 'a walk', facts.get('today'))}"
     if any(word in q for word in ("commute", "travel", "office", "drive")):
         commute = facts.get("commute")
         if commute and commute.get("best_departure_window"):
@@ -220,7 +227,7 @@ def chat_reply(question: str, facts: dict[str, Any]) -> str:
     )
 
 
-def _window_sentence(window: dict[str, Any] | None, label: str) -> str:
+def _window_sentence(window: dict[str, Any] | None, label: str, today: str | None = None) -> str:
     if window is None:
         return f"There's no suitable time for {label} in the next 24 hours; plan something indoors."
     advice = {
@@ -229,7 +236,7 @@ def _window_sentence(window: dict[str, Any] | None, label: str) -> str:
         "avoid": "is the least bad time, but it's better to stay indoors",
     }
     return (
-        f"For {label}, {window['start']}-{window['end']} {advice[window['advice']]} "
+        f"For {label}, {_on(window, today)} to {window['end']} {advice[window['advice']]} "
         f"(AQI {window['avg_aqi']}, {window['category']}). {window['guidance']}"
     )
 

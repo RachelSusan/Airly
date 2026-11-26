@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 
 from app.engine.aqi import AqiCategory, AqiPoint
+from app.engine.timefmt import clock
 
 STILL_AIR_KMH = 5.0  # below this, air exchange through one window is slow
 AIRING_MINUTES = 15
@@ -62,7 +63,7 @@ def ventilation_advice(
         if airing is not None and airing.category.level <= AqiCategory.MODERATE.level:
             tips.append(
                 f"Air out for about {AIRING_MINUTES} minutes around "
-                f"{airing.time:%H:%M}, when the air is cleanest."
+                f"{clock(airing.time)}, when the air is cleanest."
             )
         else:
             tips.append("Keep windows shut today and run a purifier if you have one.")

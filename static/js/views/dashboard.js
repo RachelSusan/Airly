@@ -3,13 +3,17 @@ import { api } from "../api.js";
 import { h, render } from "../dom.js";
 import { updateScene } from "../scene.js";
 import { airMapSection } from "./airmap.js";
+import { trendsSection } from "./trends.js";
 import {
   ACTIVITY_LABELS,
   POLLUTANT_LABELS,
   adviceBadge,
   categoryBadge,
-  hhmm,
+  dateLabel,
+  dayWord,
+  hourLabel,
   number,
+  timeLabel,
 } from "../format.js";
 
 const MAX_AQI = 500;
@@ -24,6 +28,7 @@ export async function renderDashboard(root, state) {
       label: data.current.label,
       aqi: data.current.aqi,
       nearYou: Boolean(state.location.gps),
+      updated: `${dateLabel(data.current.time)}, ${timeLabel(data.current.time)}`,
     });
     render(root, view(data, state));
   } catch (error) {
@@ -61,7 +66,7 @@ function view(data, state) {
         ),
         h("p", {}, h("strong", {}, "Main pollutant: "), POLLUTANT_LABELS[current.dominant] ?? current.dominant),
         h("p", {}, adviceBadge(current.advice), " ", current.guidance),
-        h("p", { class: "card__meta" }, `Updated ${hhmm(current.time)} local time · Estimate from modelled data`),
+        h("p", { class: "card__meta" }, `Updated ${dateLabel(current.time)}, ${timeLabel(current.time)} (local time) · Estimate from modelled data`),
       ),
       h(
         "div",
@@ -74,20 +79,24 @@ function view(data, state) {
     h(
       "section",
       { class: "section", "aria-labelledby": "windows-title" },
-      h("h2", { id: "windows-title" }, "Best times today"),
+      h("h2", { id: "windows-title" }, "Best times in the next 24 hours"),
       h(
         "div",
         { class: "grid grid--4" },
-        Object.entries(data.best_windows).map(([activity, w]) => windowCard(activity, w)),
+        Object.entries(data.best_windows).map(([activity, w]) => windowCard(activity, w, current.time)),
       ),
     ),
     h(
       "section",
       { class: "section card", "aria-labelledby": "forecast-title" },
       h("h2", { id: "forecast-title", class: "card__title" }, "Next 24 hours"),
+      data.forecast.length
+        ? h("p", { class: "muted small" }, `${dateLabel(data.forecast[0].time)}, ${timeLabel(data.forecast[0].time)} – ${dateLabel(data.forecast.at(-1).time)}, ${timeLabel(data.forecast.at(-1).time)}`)
+        : null,
       forecastBars(data.forecast),
       forecastTable(data.forecast),
     ),
+    trendsSection(state.location),
   ];
 }
 
@@ -116,7 +125,7 @@ function pollutantList(current) {
   );
 }
 
-function windowCard(activity, w) {
+function windowCard(activity, w, nowIso) {
   const title = ACTIVITY_LABELS[activity] ?? activity;
   if (!w) {
     return h("div", { class: "card" }, h("h3", { class: "card__title" }, title), h("p", {}, "No suitable time in the next 24 hours."));
@@ -125,7 +134,8 @@ function windowCard(activity, w) {
     "div",
     { class: "card" },
     h("h3", { class: "card__title" }, title),
-    h("p", { class: "item-row" }, h("strong", {}, `${hhmm(w.start)}–${hhmm(w.end)}`), adviceBadge(w.advice)),
+    h("p", { class: "muted small" }, dayWord(w.start, nowIso)),
+    h("p", { class: "item-row" }, h("strong", {}, `${timeLabel(w.start)} – ${timeLabel(w.end)}`), adviceBadge(w.advice)),
     h("p", { class: "card__meta" }, `Average AQI ${w.avg_aqi} (${w.label})`),
     h("p", {}, w.guidance),
   );
@@ -133,19 +143,19 @@ function windowCard(activity, w) {
 
 function forecastBars(forecast) {
   const bars = h("div", { class: "forecast-bars", "aria-hidden": "true" });
-  for (const hour of forecast) {
-    const bar = h("div", { class: `forecast-bars__bar bar--${hour.category}`, title: `${hhmm(hour.time)}: AQI ${hour.aqi}` });
+  const axis = h("div", { class: "forecast-ticks", "aria-hidden": "true" });
+  forecast.forEach((hour, i) => {
+    const bar = h("div", {
+      class: `forecast-bars__bar bar--${hour.category}`,
+      title: `${dateLabel(hour.time)}, ${timeLabel(hour.time)}: AQI ${hour.aqi}`,
+    });
     bar.style.height = `${Math.max(4, Math.round((hour.aqi / MAX_AQI) * 100))}%`;
     bars.append(bar);
-  }
-  const first = forecast[0];
-  const last = forecast[forecast.length - 1];
-  return [
-    bars,
-    first
-      ? h("div", { class: "forecast-axis", "aria-hidden": "true" }, h("span", {}, hhmm(first.time)), h("span", {}, hhmm(last.time)))
-      : null,
-  ];
+    const midnight = hour.time.slice(11, 13) === "00";
+    const label = midnight ? dateLabel(hour.time).split(" ").slice(0, 2).join(" ") : i % 3 === 0 ? hourLabel(hour.time) : "";
+    axis.append(h("span", { class: midnight ? "forecast-ticks__day" : "" }, label));
+  });
+  return [bars, axis];
 }
 
 function forecastTable(forecast) {
@@ -160,7 +170,7 @@ function forecastTable(forecast) {
         "table",
         {},
         h("caption", {}, "24-hour AQI forecast"),
-        h("thead", {}, h("tr", {}, ["Time", "AQI", "Category", "Outdoor exercise"].map((t) => h("th", { scope: "col" }, t)))),
+        h("thead", {}, h("tr", {}, ["Day", "Time", "AQI", "Category", "Outdoor exercise"].map((t) => h("th", { scope: "col" }, t)))),
         h(
           "tbody",
           {},
@@ -168,7 +178,8 @@ function forecastTable(forecast) {
             h(
               "tr",
               {},
-              h("th", { scope: "row" }, hhmm(hour.time)),
+              h("td", {}, dateLabel(hour.time)),
+              h("th", { scope: "row" }, timeLabel(hour.time)),
               h("td", {}, hour.aqi),
               h("td", {}, categoryBadge(hour.category, hour.label)),
               h("td", {}, adviceBadge(hour.advice)),

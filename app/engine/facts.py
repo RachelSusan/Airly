@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any
 
 from app.engine.aqi import AqiPoint, InsufficientDataError, aqi_point, aqi_series
@@ -15,6 +16,7 @@ from app.engine.checklist import checklist_for
 from app.engine.exposure import BreathingActivity, exposure_change_pct, inhaled_dose_ug
 from app.engine.impact import Mode, ScenarioResult, commute_switch
 from app.engine.risk import Sensitivity, assess_member, sensitivity_for
+from app.engine.timefmt import clock, day_label
 from app.engine.ventilation import ventilation_advice
 from app.engine.windows import Activity, TimeWindow, best_window, worst_hours
 from app.models.air import AirData
@@ -112,6 +114,8 @@ def build_facts(
             "lon": air.lon,
             "timezone": air.timezone,
         },
+        "today": day_label(current.time),
+        "times_are": "local time, 12-hour clock",
         "now": _point(current),
         "weather_now": air.current.weather.model_dump(),
         "forecast_summary": {
@@ -132,8 +136,8 @@ def build_facts(
 
 def _point(point: AqiPoint) -> dict[str, Any]:
     return {
-        "time": point.time.strftime("%H:%M"),
-        "date": point.time.date().isoformat(),
+        "time": clock(point.time),
+        "day": day_label(point.time),
         "aqi": point.aqi,
         "category": point.category.label,
         "dominant": point.dominant.value,
@@ -146,8 +150,9 @@ def _window(window: TimeWindow | None) -> dict[str, Any] | None:
         return None
     return {
         "activity": window.activity.value,
-        "start": window.start.strftime("%H:%M"),
-        "end": window.end.strftime("%H:%M"),
+        "day": day_label(window.start),
+        "start": clock(window.start),
+        "end": clock(window.end),
         "avg_aqi": window.avg_aqi,
         "category": window.category.label,
         "advice": window.advice.value,
@@ -205,7 +210,7 @@ def _ventilation(
     )
     return {
         "open_windows_now": advice.open_windows,
-        "airing_time": advice.airing_hour.time.strftime("%H:%M") if advice.airing_hour else None,
+        "airing_time": clock(advice.airing_hour.time) if advice.airing_hour else None,
         "reason": advice.reason,
         "tips": list(advice.tips),
     }
@@ -217,13 +222,16 @@ def _jog_exposure(series: Sequence[AqiPoint], best: dict[str, Any] | None) -> di
     if not best or not daytime:
         return None
     worst = max(daytime, key=lambda p: p.pm2_5 or 0)
-    best_point = next((p for p in series if p.time.strftime("%H:%M") == best["start"]), None)
+    best_point = next(
+        (p for p in series if clock(p.time) == best["start"] and day_label(p.time) == best["day"]),
+        None,
+    )
     if best_point is None or not best_point.pm2_5 or not worst.pm2_5:
         return None
     old = inhaled_dose_ug(worst.pm2_5, BreathingActivity.JOG, 1)
     new = inhaled_dose_ug(best_point.pm2_5, BreathingActivity.JOG, 1)
     return {
-        "worst_time": worst.time.strftime("%H:%M"),
+        "worst_time": clock(worst.time),
         "worst_pm2_5": worst.pm2_5,
         "best_time": best["start"],
         "best_pm2_5": best_point.pm2_5,
@@ -251,7 +259,7 @@ def _commute(
         "mode": commute.mode.value,
         "distance_km": commute.distance_km,
         "days_per_week": commute.days_per_week,
-        "usual_departure": f"{commute.depart_hour:02d}:00",
+        "usual_departure": clock(datetime(2000, 1, 1, commute.depart_hour)),
         "best_departure_window": _window(window),
         "alternatives": alternatives,
     }
@@ -286,6 +294,9 @@ def _school(
         series, Activity.PLAY, sensitivity=sensitivity, hours=(school.start_hour, school.end_hour)
     )
     return {
-        "hours": f"{school.start_hour:02d}:00-{school.end_hour:02d}:00",
+        "hours": (
+            f"{clock(datetime(2000, 1, 1, school.start_hour))}"
+            f"-{clock(datetime(2000, 1, 1, school.end_hour))}"
+        ),
         "best_outdoor_slot": _window(window),
     }

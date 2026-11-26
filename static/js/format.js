@@ -117,9 +117,55 @@ export function sourceBadge(source) {
   );
 }
 
-/** "14:00" from an ISO local time like 2026-11-26T14:00:00. */
-export function hhmm(iso) {
-  return typeof iso === "string" && iso.length >= 16 ? iso.slice(11, 16) : iso;
+// ---- Dates and times -------------------------------------------------------------
+// API times are the location's local time without a zone ("2026-11-26T16:00"), so they are
+// read as plain parts, never shifted into the viewer's time zone.
+
+const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+function parts(iso) {
+  const [datePart, timePart = "00:00"] = String(iso).split("T");
+  const [y, m, d] = datePart.split("-").map(Number);
+  const [hh, mm] = timePart.split(":").map(Number);
+  return { y, m, d, hh: hh || 0, mm: mm || 0 };
+}
+
+function weekday({ y, m, d }) {
+  return DAYS[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
+}
+
+/** "4:00 PM" */
+export function timeLabel(iso) {
+  const { hh, mm } = parts(iso);
+  return `${hh % 12 || 12}:${String(mm).padStart(2, "0")} ${hh < 12 ? "AM" : "PM"}`;
+}
+
+/** "4 PM" (compact, for chart axes) */
+export function hourLabel(iso) {
+  const { hh } = parts(iso);
+  return `${hh % 12 || 12} ${hh < 12 ? "AM" : "PM"}`;
+}
+
+/** "Thu 26 Nov" */
+export function dateLabel(iso) {
+  const p = parts(iso);
+  return `${weekday(p)} ${p.d} ${MONTHS[p.m - 1]}`;
+}
+
+/** "Today", "Tomorrow" or "Sat 28 Nov", relative to the reference date (ISO). */
+export function dayWord(iso, referenceIso) {
+  const a = parts(iso);
+  const b = parts(referenceIso);
+  const diff = Math.round((Date.UTC(a.y, a.m - 1, a.d) - Date.UTC(b.y, b.m - 1, b.d)) / 86400000);
+  if (diff === 0) return "Today";
+  if (diff === 1) return "Tomorrow";
+  return dateLabel(iso);
+}
+
+/** Viewer's own clock, e.g. "4:05 PM" (for "sent at" / "generated at" stamps). */
+export function nowLabel(date = new Date()) {
+  return date.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit", hour12: true }).toUpperCase();
 }
 
 export function number(value, digits = 0) {

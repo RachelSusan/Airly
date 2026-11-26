@@ -17,10 +17,11 @@ from app.api import air, chat, health, plan, simulate
 from app.api.deps import build_limiters
 from app.api.errors import register_error_handlers
 from app.config import Settings, get_settings
-from app.models.air import AirData, GridPoint, Place
+from app.models.air import AirData, GridPoint, HourlyReading, Place
 from app.security.body_limit import add_body_limit
 from app.security.headers import add_security_headers
 from app.services.air_grid import AirGridService
+from app.services.air_history import AirHistoryService
 from app.services.air_quality import AirQualityService
 from app.services.cache import TTLCache
 from app.services.geocoding import GeocodingService
@@ -29,6 +30,7 @@ STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 UPSTREAM_TIMEOUT_SECONDS = 8.0
 STALE_AIR_SECONDS = 2 * 60 * 60
 GEO_CACHE_SECONDS = 24 * 60 * 60
+HISTORY_CACHE_SECONDS = 60 * 60
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +63,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                         ttl=settings.air_cache_ttl_seconds,
                         max_entries=200,
                         stale_ttl=STALE_AIR_SECONDS,
+                    ),
+                )
+            if not hasattr(state, "history_service"):
+                state.history_service = AirHistoryService(
+                    http,
+                    TTLCache[list[HourlyReading]](
+                        ttl=HISTORY_CACHE_SECONDS, max_entries=200, stale_ttl=STALE_AIR_SECONDS
                     ),
                 )
             if not hasattr(state, "geocoding_service"):

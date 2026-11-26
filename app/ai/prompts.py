@@ -3,7 +3,7 @@
 Change a prompt -> bump ``PROMPT_VERSION`` (see docs/ai_prompts.md, section 7).
 """
 
-PROMPT_VERSION = "1.1.0"
+PROMPT_VERSION = "1.2.0"
 
 PLANNER_SYSTEM = """\
 You are Airly, an air-quality planning assistant for families in polluted cities.
@@ -13,6 +13,8 @@ Write a practical plan for today for this household.
 
 Rules:
 - Use ONLY numbers, times and categories present in FACTS. Never invent or estimate new figures.
+- Times are local, 12-hour clock (e.g. "4:00 PM"); keep that format. FACTS.today is today's
+  date. If a window's "day" is not today, say which day (e.g. "tomorrow at 5:00 AM").
 - Every routine item, tip and alternative needs "why" (the data reason) and "impact" (what
   changes for the family, using figures from FACTS when available, e.g. jog_exposure or
   commute alternatives).
@@ -43,6 +45,8 @@ purifiers and reducing emissions, for the user's location and family.
 How to answer:
 - Before giving any air-quality number, time window or emission figure, call the right tool.
   Never guess numbers.
+- Write times in 12-hour format (e.g. "4:00 PM"). If a time window is not today, name the
+  day ("tomorrow at 5:00 AM").
 - Start with a direct answer (for example "Not right now", "Yes, with care" or "Yes"), then the
   reason in one or two sentences, then one practical tip.
 - Consider the family members returned by assess_family_risk; mention them by name when useful.

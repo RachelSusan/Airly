@@ -94,6 +94,34 @@ class GridCell(BaseModel):
     pm2_5: float | None
 
 
+class HistoryDay(BaseModel):
+    date: str  # ISO date
+    label: str  # e.g. "Thu 26 Nov"
+    aqi: int
+    category: AqiCategory
+    category_label: str
+    dominant: Pollutant
+    pm2_5: float | None
+    complete: bool
+    is_today: bool
+
+
+class HistorySummary(BaseModel):
+    days: int
+    by_category: dict[str, int]
+    average_aqi: int | None
+    best: HistoryDay | None
+    worst: HistoryDay | None
+
+
+class HistoryResponse(BaseModel):
+    period_days: int
+    days: list[HistoryDay]
+    summary: HistorySummary
+    stale: bool
+    note: str
+
+
 class Point(_Strict):
     lat: float = Field(ge=-90, le=90)
     lon: float = Field(ge=-180, le=180)

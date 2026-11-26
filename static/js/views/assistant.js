@@ -1,6 +1,7 @@
 // AI Air Quality Assistant chat.
 import { api } from "../api.js";
 import { h, render, uid } from "../dom.js";
+import { nowLabel } from "../format.js";
 import { householdPayload, membersPayload, placeName, store } from "../store.js";
 
 const MAX_HISTORY = 20;
@@ -41,8 +42,9 @@ export function renderAssistant(root) {
   const ask = async (question) => {
     const text = question.trim().slice(0, MAX_CHARS);
     if (!text || send.disabled) return;
-    history.push({ role: "user", content: text });
-    log.append(message({ role: "user", content: text }));
+    const sent = { role: "user", content: text, at: nowLabel() };
+    history.push(sent);
+    log.append(message(sent));
     input.value = "";
     send.disabled = true;
     status.textContent = "Airly is checking live data…";
@@ -56,7 +58,7 @@ export function renderAssistant(root) {
           household: householdPayload(state.household),
         },
       });
-      const entry = { role: "assistant", content: reply.reply, tools: reply.tools_used, source: reply.source };
+      const entry = { role: "assistant", content: reply.reply, tools: reply.tools_used, source: reply.source, at: nowLabel() };
       history.push(entry);
       log.append(message(entry));
       status.textContent = "";
@@ -102,8 +104,10 @@ function message(entry) {
   if (entry.role === "assistant") {
     const basis = tools.length ? `Based on: ${tools.join(", ")}` : null;
     const source = entry.source === "rules" ? "Rule-based backup answer" : null;
-    const text = [basis, source].filter(Boolean).join(" · ");
+    const text = [entry.at, basis, source].filter(Boolean).join(" · ");
     meta = text ? h("span", { class: "msg__meta" }, text) : null;
+  } else if (entry.at) {
+    meta = h("span", { class: "msg__meta msg__meta--user" }, entry.at);
   }
   return h(
     "li",

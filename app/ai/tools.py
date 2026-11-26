@@ -9,6 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from app.engine.facts import HouseholdFacts
 from app.engine.impact import Mode, commute_switch
 from app.engine.risk import Sensitivity
+from app.engine.timefmt import clock, day_label
 from app.engine.windows import Activity, best_window
 
 MAX_TOOL_ROUNDS = 4
@@ -112,8 +113,9 @@ def run_tool(name: str, raw_input: Any, facts: HouseholdFacts) -> dict[str, Any]
             return {
                 "window": {
                     "activity": window.activity.value,
-                    "start": window.start.strftime("%H:%M"),
-                    "end": window.end.strftime("%H:%M"),
+                    "day": day_label(window.start),
+                    "start": clock(window.start),
+                    "end": clock(window.end),
                     "avg_aqi": window.avg_aqi,
                     "category": window.category.label,
                     "advice": window.advice.value,

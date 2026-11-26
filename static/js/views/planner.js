@@ -6,6 +6,7 @@ import {
   ACTIVITY_LABELS,
   adviceBadge,
   categoryBadge,
+  nowLabel,
   MODE_LABELS,
   RELATIONSHIP_LABELS,
   riskBadge,
@@ -75,7 +76,8 @@ function planView(plan, previous) {
     h(
       "div",
       { class: "card section" },
-      h("p", { class: "item-row" }, sourceBadge(plan.source), h("span", { class: "card__meta" }, `Updated ${new Date(plan.generated_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`)),
+      h("p", { class: "eyebrow" }, `Plan for ${plan.current.day ?? "today"}`),
+      h("p", { class: "item-row" }, sourceBadge(plan.source), h("span", { class: "card__meta" }, `Made at ${nowLabel(new Date(plan.generated_at))}`)),
       h("p", { class: "aqi-value" }, h("strong", {}, `AQI ${plan.current.aqi}`), categoryBadge(categoryKey(plan.current.category), plan.current.category)),
       h("p", {}, plan.summary),
     ),

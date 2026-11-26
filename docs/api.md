@@ -83,6 +83,18 @@ Current AQI on a 7×7 grid (0.1° ≈ 11 km apart) around the location, from one
 ```
 Cells without particulate data are left out. If none are usable, the response is `503`.
 
+## `GET /api/air/history?lat={lat}&lon={lon}&days={7|30}`
+Daily AQI for the past week (7) or month (30), today included. Each day's AQI uses that day's **average** modelled concentrations (closest to the official 24-hour method). Today includes forecast hours for the rest of the day. Other `days` values return `422`.
+```json
+{
+  "period_days": 7,
+  "days": [ { "date": "2026-11-20", "label": "Fri 20 Nov", "aqi": 341, "category": "very_poor", "category_label": "Very Poor", "dominant": "pm2_5", "pm2_5": 168.2, "complete": true, "is_today": false } ],
+  "summary": { "days": 7, "by_category": { "very_poor": 3, "poor": 2, "moderate": 2 }, "average_aqi": 268, "best": { "...": "..." }, "worst": { "...": "..." } },
+  "stale": false,
+  "note": "Daily AQI from the day's average modelled concentrations..."
+}
+```
+
 ## `POST /api/air/points`
 Current AQI at up to 80 points in one upstream request, returned in the same order. Used for the "Show other cities" map layer.
 ```json

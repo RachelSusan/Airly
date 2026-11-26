@@ -27,6 +27,7 @@ Legend: `[ ]` to do Â· `[x]` done Â· `[~]` in progress
 - [x] Professional redesign (floating glass nav, photo hero, olive accent, Manrope); animation removed
 - [x] Family: relationship, travel and school per member; personal plans per member in the Day planner
 - [x] Tested the AI path live with a real `GEMINI_API_KEY`: chat (tool calls), planner and simulator all answered by Gemini; busy models fall back automatically
+- [x] 12-hour times and dates everywhere (UI, AI facts, backups); week / month AQI trend
 - [ ] Deploy (platform decision)
 - [ ] **Submission 1** (baseline, all modules working)
 

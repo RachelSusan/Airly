@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable, Iterator
+from datetime import datetime, timedelta
 from types import SimpleNamespace
 from typing import Any
 
@@ -15,7 +16,7 @@ from google.genai import types
 from app.ai.client import GeminiClient
 from app.config import Settings
 from app.main import create_app
-from app.models.air import AirData, GridPoint, Place, Pollutants
+from app.models.air import AirData, GridPoint, HourlyReading, Place, Pollutants, Weather
 from app.services.air_quality import parse_air_data
 from app.services.errors import UpstreamError
 
@@ -58,6 +59,37 @@ class FakeGrid:
             GridPoint(lat=lat, lon=lon, pollutants=self.points[i % len(self.points)].pollutants)
             for i, (lat, lon) in enumerate(points)
         ], False
+
+
+class FakeHistory:
+    def __init__(self, readings: list[HourlyReading] | None) -> None:
+        self.readings = readings
+        self.calls: list[int] = []
+
+    async def get_history(
+        self, lat: float, lon: float, days: int
+    ) -> tuple[list[HourlyReading], bool]:
+        self.calls.append(days)
+        if self.readings is None:
+            raise UpstreamError("down")
+        return self.readings, False
+
+
+def history_readings(daily_pm25: list[float], hours_last_day: int = 24) -> list[HourlyReading]:
+    """Hourly readings ending on 26 Nov 2026, constant PM2.5 within each day."""
+    start = datetime(2026, 11, 26) - timedelta(days=len(daily_pm25) - 1)
+    out = []
+    for d, pm in enumerate(daily_pm25):
+        hours = hours_last_day if d == len(daily_pm25) - 1 else 24
+        out.extend(
+            HourlyReading(
+                time=start + timedelta(days=d, hours=h),
+                pollutants=Pollutants(pm2_5=pm),
+                weather=Weather(),
+            )
+            for h in range(hours)
+        )
+    return out
 
 
 DEFAULT_GRID = [
@@ -131,11 +163,13 @@ def make_client(air_data: AirData) -> Iterator[Callable[..., TestClient]]:
         models: FakeModels | None = None,
         air: FakeAirService | None = None,
         grid: FakeGrid | None = None,
+        history: FakeHistory | None = None,
         **settings: Any,
     ) -> TestClient:
         app = create_app(Settings(gemini_api_key=None, **settings))
         app.state.air_service = air or FakeAirService(air_data)
         app.state.grid_service = grid or FakeGrid(DEFAULT_GRID)
+        app.state.history_service = history or FakeHistory(history_readings([20, 45, 100, 200]))
         app.state.geocoding_service = FakeGeocoding()
         app.state.ai = GeminiClient(models, "gemini-test") if models else None
         client = TestClient(app, raise_server_exceptions=False)

@@ -51,13 +51,14 @@ export function mountScene(host) {
 }
 
 /** Show the city's photo, name and (when known) live AQI with a matching smog tint. */
-export function updateScene({ city, category, label, aqi, nearYou = false }) {
+export function updateScene({ city, category, label, aqi, nearYou = false, updated = null }) {
   if (!parts) return;
   const name = (city || "").split(",")[0].trim();
   const key = (city || "").toLowerCase();
   setPhoto(PHOTOS.find((p) => p.match.some((m) => key.includes(m))) ?? DEFAULT_PHOTO);
   if (name) parts.city.textContent = name;
-  parts.eyebrow.textContent = nearYou ? "Live air quality · near you" : "Live air quality";
+  const where = nearYou ? "Live air quality · near you" : "Live air quality";
+  parts.eyebrow.textContent = updated ? `${where} · ${updated}` : where;
   if (category) {
     parts.haze.dataset.category = category;
     parts.aqi.replaceChildren(h("span", { class: "hero__number" }, `AQI ${aqi}`), " ", categoryBadge(category, label));
