@@ -11,19 +11,21 @@ A calm, trustworthy, readable interface. Health information must be clear at a g
 
 ## 2. Colour tokens
 
-Defined as CSS custom properties on `:root`, with dark-mode overrides.
+Defined as CSS custom properties on `:root`. The theme is **light only**: a calm, natural look with soft sage backgrounds, forest-green accents and a light leaf motif in the header.
 
 ### Brand and surface
-| Token | Light | Dark | Use |
-|---|---|---|---|
-| `--color-bg` | `#F7F9FB` | `#0F1419` | Page background |
-| `--color-surface` | `#FFFFFF` | `#1A2027` | Cards |
-| `--color-text` | `#1B2330` | `#E8ECF1` | Body text |
-| `--color-text-muted` | `#4A5565` | `#A9B3C1` | Secondary text (still ≥ 4.5:1) |
-| `--color-primary` | `#0B6E99` | `#5BB8E0` | Buttons, links, focus |
-| `--color-primary-contrast` | `#FFFFFF` | `#0F1419` | Text on primary |
-| `--color-border` | `#D5DCE4` | `#2E3843` | Dividers, inputs |
-| `--color-focus` | `#0B6E99` | `#5BB8E0` | Focus ring (3 px) |
+| Token | Value | Use |
+|---|---|---|
+| `--color-bg` | `#F3F7F0` | Page background (soft sage, with faint sky and leaf gradients) |
+| `--color-surface` | `#FFFFFF` | Cards |
+| `--color-surface-2` | `#EAF2E6` | Tinted panels, chips |
+| `--color-sky` | `#E4F1F5` | Location bar |
+| `--color-text` | `#1F2D24` | Body text (deep forest ink) |
+| `--color-text-muted` | `#4B5D50` | Secondary text (still ≥ 4.5:1) |
+| `--color-primary` | `#2F6B4F` | Buttons, links, active tab (forest green) |
+| `--color-accent` | `#7FB069` | Positive bars, decoration (fresh leaf) |
+| `--color-border` | `#CFDCCA` | Dividers |
+| `--color-focus` | `#1F6F8B` | Focus ring (3 px calm teal, distinct from the greens) |
 
 ### AQI scale (Indian NAQI categories)
 Badges use a **tinted background with dark text** so contrast stays at AA or better.
@@ -77,6 +79,9 @@ Badges use a **tinted background with dark text** so contrast stays at AA or bet
 |---|---|---|
 | **AQI Hero Card** | Big AQI number, category badge, dominant pollutant, one-line advice, last-updated time | Number and category in one text string for screen readers |
 | **Pollutant Chips** | PM2.5, PM10, NO₂, O₃, CO, SO₂ with units | `<dl>` term and value pairs |
+| **Air Map** | OpenStreetMap (Leaflet) with a 5×5 grid of modelled AQI cells (~11 km each) around the user, a "You are here" marker, a legend and popups | Focusable region with keyboard pan and zoom; a text summary names the cleanest and most polluted nearby areas; the legend is a real list |
+| **Location chip** | "📍 Using live data for …" with a "Change location" button on every view that uses location | Button moves focus to the city search |
+| **Before/After chart** | Simulator CO₂ bars (before in clay, after in leaf green) | Values printed as text next to each bar |
 | **Forecast Timeline** | 24 hourly blocks coloured by category, with safe windows highlighted | Also rendered as a table; scrollable with the keyboard |
 | **Time Window Card** | "Best time to jog: 2–4 PM (Moderate)" | Uses advice-state label plus icon |
 | **Family Member Card** | Avatar initial, name, age group, conditions, today's risk badge | Edit and delete buttons with explicit labels |

@@ -22,6 +22,8 @@ Legend: `[ ]` to do · `[x]` done · `[~]` in progress
 - [x] API tests (AI mocked) and static accessibility checks (181 tests, 97% coverage)
 - [x] Frontend: tokens and base CSS, dashboard, planner, family profiles, checklist, chat, simulator
 - [~] Accessibility pass: labels, live regions, skip link, text + icon badges, mobile reflow done; NVDA and Lighthouse checks pending
+- [x] Neighbourhood air map (OpenStreetMap + modelled AQI grid), location chip on every location-based view
+- [x] Light, calm, green theme; before/after CO₂ chart in the simulator
 - [ ] Test the AI path with a real `ANTHROPIC_API_KEY` (all AI paths verified with mocks only so far)
 - [ ] Deploy (platform decision)
 - [ ] **Submission 1** (baseline, all modules working)

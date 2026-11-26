@@ -1,6 +1,7 @@
 // Live AQI dashboard: current conditions, best windows and 24-hour forecast.
 import { api } from "../api.js";
 import { h, render } from "../dom.js";
+import { airMapSection } from "./airmap.js";
 import {
   ACTIVITY_LABELS,
   POLLUTANT_LABELS,
@@ -61,6 +62,7 @@ function view(data, state) {
         pollutantList(current),
       ),
     ),
+    airMapSection(state),
     h(
       "section",
       { class: "section", "aria-labelledby": "windows-title" },

@@ -70,6 +70,19 @@ Base path: `/api` · Format: JSON (UTF-8) · Interactive docs at `/docs` in deve
 `current` also includes `label`, `advice` and `guidance` for a healthy adult. Hours without particulate data are left out of `forecast`.
 ```
 
+## `GET /api/air/grid?lat={lat}&lon={lon}`
+Current AQI on a 5×5 grid (0.1° ≈ 11 km apart) around the location, from one Open-Meteo request. Used for the neighbourhood map.
+```json
+{
+  "center": { "lat": 28.61, "lon": 77.21, "name": null },
+  "step_deg": 0.1,
+  "cells": [ { "lat": 28.41, "lon": 77.01, "aqi": 140, "category": "moderate", "label": "Moderate", "dominant": "o3", "pm2_5": 46.8 } ],
+  "stale": false,
+  "note": "Modelled regional air quality (about 10-40 km resolution). ..."
+}
+```
+Cells without particulate data are left out. If none are usable, the response is `503`.
+
 ## `POST /api/plan`
 **Request**
 ```json
@@ -144,7 +157,8 @@ Lists the preset scenarios with their input schemas and defaults.
     "co2_kg": -873.6,
     "pm25_g": -68.6,
     "nox_g": -374.4,
-    "exposure_change_pct": null
+    "exposure_change_pct": null,
+    "baseline_co2_kg": 1060.8
   },
   "explanation": "Switching your 12 km commute from a petrol car to the metro avoids about 870 kg of CO₂ a year...",
   "assumptions": ["Petrol car: 0.170 kg CO₂/km (...)", "Metro: 0.030 kg CO₂/passenger-km (...)", "..."],

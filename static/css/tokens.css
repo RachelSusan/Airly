@@ -1,24 +1,30 @@
-/* Design tokens: see docs/design_system.md */
+/* Design tokens: light, calm, nature-inspired palette (see docs/design_system.md) */
 :root {
-  --color-bg: #f7f9fb;
+  color-scheme: light;
+
+  --color-bg: #f3f7f0;          /* soft sage mist */
   --color-surface: #ffffff;
-  --color-surface-2: #eef2f6;
-  --color-text: #1b2330;
-  --color-text-muted: #4a5565;
-  --color-primary: #0b6e99;
+  --color-surface-2: #eaf2e6;   /* pale leaf */
+  --color-surface-3: #dcebd5;
+  --color-text: #1f2d24;        /* deep forest ink */
+  --color-text-muted: #4b5d50;
+  --color-primary: #2f6b4f;     /* forest green */
+  --color-primary-hover: #245640;
   --color-primary-contrast: #ffffff;
-  --color-border: #d5dce4;
-  --color-focus: #0b6e99;
-  --color-danger: #b3261e;
+  --color-accent: #7fb069;      /* fresh leaf */
+  --color-sky: #e4f1f5;         /* clear-sky tint */
+  --color-border: #cfdcca;
+  --color-focus: #1f6f8b;       /* calm teal, distinct from greens */
+  --color-danger: #a8322b;
   --color-danger-contrast: #ffffff;
 
   /* AQI: badge text on tinted background (AA contrast) */
-  --aqi-good-fg: #0b3d21;       --aqi-good-bg: #d7f2e1;       --aqi-good: #2e9e5b;
+  --aqi-good-fg: #0b3d21;         --aqi-good-bg: #d7f2e1;         --aqi-good: #2e9e5b;
   --aqi-satisfactory-fg: #2e4a0e; --aqi-satisfactory-bg: #ecf6dc; --aqi-satisfactory: #8bc34a;
-  --aqi-moderate-fg: #4d3b00;   --aqi-moderate-bg: #fff4c7;   --aqi-moderate: #f2c200;
-  --aqi-poor-fg: #5a2e00;       --aqi-poor-bg: #ffe5c2;       --aqi-poor: #f08c00;
-  --aqi-very-poor-fg: #5c0b06;  --aqi-very-poor-bg: #fbd9d6;  --aqi-very-poor: #d93025;
-  --aqi-severe-fg: #ffffff;     --aqi-severe-bg: #7e1f3b;     --aqi-severe: #7e1f3b;
+  --aqi-moderate-fg: #4d3b00;     --aqi-moderate-bg: #fff4c7;     --aqi-moderate: #f2c200;
+  --aqi-poor-fg: #5a2e00;         --aqi-poor-bg: #ffe5c2;         --aqi-poor: #f08c00;
+  --aqi-very-poor-fg: #5c0b06;    --aqi-very-poor-bg: #fbd9d6;    --aqi-very-poor: #d93025;
+  --aqi-severe-fg: #ffffff;       --aqi-severe-bg: #7e1f3b;       --aqi-severe: #7e1f3b;
 
   --advice-safe-fg: #0b3d21;    --advice-safe-bg: #d7f2e1;
   --advice-caution-fg: #4d3b00; --advice-caution-bg: #fff4c7;
@@ -40,26 +46,9 @@
   --space-8: 32px;
   --space-12: 48px;
 
-  --radius-sm: 6px;
-  --radius-md: 12px;
+  --radius-sm: 8px;
+  --radius-md: 16px;
   --radius-pill: 999px;
-  --shadow-card: 0 1px 3px rgb(0 0 0 / 0.08);
+  --shadow-card: 0 1px 2px rgb(31 45 36 / 0.06), 0 4px 16px rgb(47 107 79 / 0.06);
   --max-width: 1100px;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: #0f1419;
-    --color-surface: #1a2027;
-    --color-surface-2: #232b34;
-    --color-text: #e8ecf1;
-    --color-text-muted: #a9b3c1;
-    --color-primary: #5bb8e0;
-    --color-primary-contrast: #0f1419;
-    --color-border: #2e3843;
-    --color-focus: #5bb8e0;
-    --color-danger: #f2b8b5;
-    --color-danger-contrast: #3a0b08;
-    --shadow-card: 0 1px 3px rgb(0 0 0 / 0.4);
-  }
 }

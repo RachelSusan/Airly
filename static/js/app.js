@@ -36,6 +36,7 @@ function showView({ focus = false } = {}) {
     else link.removeAttribute("aria-current");
   });
   const state = store.get();
+  showLocationChip(view.needsLocation ? state.location : null);
   if (view.needsLocation && !state.location) {
     render(
       viewEl,
@@ -49,6 +50,31 @@ function showView({ focus = false } = {}) {
     view.render(viewEl, state);
   }
   if (focus) document.getElementById("main").focus();
+}
+
+/** Show which location this view uses, with a quick way to change it. */
+function showLocationChip(loc) {
+  const chip = document.getElementById("view-location");
+  if (!loc) {
+    chip.hidden = true;
+    render(chip);
+    return;
+  }
+  render(
+    chip,
+    h("span", { class: "view-location__pin", "aria-hidden": "true" }, "📍"),
+    h("span", {}, `Using live data for ${loc.name}`),
+    h(
+      "button",
+      {
+        type: "button",
+        class: "btn btn--ghost btn--small",
+        onclick: () => document.getElementById("city-input").focus(),
+      },
+      "Change location",
+    ),
+  );
+  chip.hidden = false;
 }
 
 function setLocation(loc) {

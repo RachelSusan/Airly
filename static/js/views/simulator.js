@@ -94,6 +94,34 @@ function control(scenarioId, name, value) {
   return h("div", { class: "field" }, h("label", { for: id }, label), h("input", { id, name, type: "number", required: true, value, ...limits }));
 }
 
+/** Before/after CO₂ bars (or CO₂ absorbed for trees). Values are also given as text. */
+function comparisonChart(r) {
+  const rows =
+    r.baseline_co2_kg !== null
+      ? [
+          ["Before", r.baseline_co2_kg, "before"],
+          ["After", Math.max(0, r.baseline_co2_kg + r.co2_kg), "after"],
+        ]
+      : [["Absorbed", Math.abs(r.co2_kg), "after"]];
+  const max = Math.max(...rows.map(([, value]) => value), 1);
+  return h(
+    "figure",
+    { class: "compare" },
+    h("figcaption", { class: "card__meta" }, r.baseline_co2_kg !== null ? `CO₂ per ${r.period}, before and after the change` : `CO₂ absorbed over ${r.period}`),
+    rows.map(([label, value, kind]) => {
+      const bar = h("div", { class: `compare__bar compare__bar--${kind}` });
+      bar.style.width = `${Math.max(1, (value / max) * 100)}%`;
+      return h(
+        "div",
+        { class: "compare__row" },
+        h("span", {}, label),
+        h("div", { class: "compare__track", "aria-hidden": "true" }, bar),
+        h("span", { class: "compare__value" }, `${number(value)} kg`),
+      );
+    }),
+  );
+}
+
 function resultView(data) {
   const r = data.result;
   const verb = (v) => (v < 0 ? "less" : "more");
@@ -108,6 +136,7 @@ function resultView(data) {
     { class: "card section", "aria-labelledby": "result-title" },
     h("h2", { id: "result-title", class: "card__title" }, `Estimated change per ${r.period}`),
     h("p", {}, sourceBadge(data.source)),
+    comparisonChart(r),
     h("dl", { class: "stats" }, stats.map(([k, v]) => h("div", {}, h("dt", {}, k), h("dd", {}, v)))),
     h("p", {}, data.explanation),
     data.next_step ? h("p", {}, h("strong", {}, "Next step: "), data.next_step) : null,
