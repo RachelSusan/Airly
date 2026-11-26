@@ -1,6 +1,7 @@
 // App shell: routing, location search and view rendering.
 import { api } from "./api.js";
 import { h, render } from "./dom.js";
+import { mountScene, updateScene } from "./scene.js";
 import { store } from "./store.js";
 import { renderDashboard } from "./views/dashboard.js";
 import { renderPlanner } from "./views/planner.js";
@@ -79,6 +80,7 @@ function showLocationChip(loc) {
 
 function setLocation(loc) {
   store.update({ location: loc });
+  updateScene({ city: loc.name });
   statusEl.textContent = `Showing air quality for ${loc.name}.`;
   render(resultsEl);
   resultsEl.hidden = true;
@@ -158,12 +160,29 @@ function useMyLocation() {
   );
 }
 
+/** Let people pause the moving scene (WCAG 2.2.2); start paused if they prefer reduced motion. */
+function setupSceneToggle() {
+  const button = document.getElementById("scene-toggle");
+  const scene = document.getElementById("scene");
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const apply = (paused) => {
+    scene.classList.toggle("scene--paused", paused);
+    button.setAttribute("aria-pressed", String(paused));
+    button.textContent = paused ? "Play animation" : "Pause animation";
+  };
+  apply(reduced);
+  button.addEventListener("click", () => apply(!scene.classList.contains("scene--paused")));
+}
+
 function init() {
+  mountScene(document.getElementById("scene"));
+  setupSceneToggle();
   document.getElementById("location-form").addEventListener("submit", searchCity);
   document.getElementById("geo-button").addEventListener("click", useMyLocation);
   window.addEventListener("hashchange", () => showView({ focus: true }));
   const loc = store.get().location;
   if (loc) {
+    updateScene({ city: loc.name });
     document.getElementById("city-input").value = loc.name === "your location" ? "" : loc.name;
     statusEl.textContent = `Showing air quality for ${loc.name}.`;
   }

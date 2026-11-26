@@ -79,6 +79,7 @@ Badges use a **tinted background with dark text** so contrast stays at AA or bet
 |---|---|---|
 | **AQI Hero Card** | Big AQI number, category badge, dominant pollutant, one-line advice, last-updated time | Number and category in one text string for screen readers |
 | **Pollutant Chips** | PM2.5, PM10, NO₂, O₃, CO, SO₂ with units | `<dl>` term and value pairs |
+| **City Scene** | Animated SVG banner: a colourful skyline generated from the city name, a landmark for Delhi, Mumbai, Kolkata, Hyderabad and Agra, trees swaying in the breeze, drifting clouds and birds. The sky colour and smog haze follow the live AQI category | Decorative (`aria-hidden`), with a text caption describing the haze; "Pause animation" button (WCAG 2.2.2); starts paused when the user prefers reduced motion |
 | **Air Map** | OpenStreetMap (Leaflet) with a 5×5 grid of modelled AQI cells (~11 km each) around the user, a "You are here" marker, a legend and popups | Focusable region with keyboard pan and zoom; a text summary names the cleanest and most polluted nearby areas; the legend is a real list |
 | **Location chip** | "📍 Using live data for …" with a "Change location" button on every view that uses location | Button moves focus to the city search |
 | **Before/After chart** | Simulator CO₂ bars (before in clay, after in leaf green) | Values printed as text next to each bar |

@@ -321,5 +321,41 @@ details summary { cursor: pointer; font-weight: 600; min-height: 44px; display: 
 .compare__bar--after { background: var(--color-accent); }
 .compare__value { font-weight: 700; font-size: var(--fs-small); white-space: nowrap; }
 
+/* ---------- City scene ---------- */
+.scene-wrap { height: 190px; overflow: hidden; border-bottom: 1px solid var(--color-border); background: var(--color-sky); }
+@media (max-width: 600px) { .scene-wrap { height: 130px; } }
+.scene { display: block; width: 100%; height: 100%; }
+.scene-haze { transition: opacity 1.2s ease; }
+.scene-sun { fill: #ffd56b; opacity: 0.95; }
+.scene[data-category="poor"] .scene-sun,
+.scene[data-category="very_poor"] .scene-sun,
+.scene[data-category="severe"] .scene-sun { fill: #f2c48a; opacity: 0.6; }
+.scene-meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.scene-caption { font-size: var(--fs-small); color: var(--color-text-muted); margin: 0; }
+.scene-meta .btn { margin-left: auto; }
+.scene--paused * { animation-play-state: paused !important; }
+
+.scene-tree { transform-box: fill-box; transform-origin: 50% 100%; animation: sway 4.5s ease-in-out infinite alternate; }
+.scene-tree--1 { animation-duration: 5.5s; animation-delay: -1.5s; }
+.scene-tree--2 { animation-duration: 3.8s; animation-delay: -0.8s; }
+@keyframes sway { from { transform: rotate(-2.5deg); } to { transform: rotate(3deg); } }
+
+.scene-cloud { animation: drift 60s linear infinite alternate; }
+.scene-cloud--fast { animation-duration: 38s; }
+@keyframes drift { from { transform: translateX(-60px); } to { transform: translateX(120px); } }
+
+.scene-breeze__line { fill: none; stroke: #ffffff; stroke-width: 2.5; stroke-linecap: round; opacity: 0.75; stroke-dasharray: 40 220; animation: gust 6s linear infinite; }
+.scene-breeze__line--1 { animation-delay: -2s; }
+.scene-breeze__line--2 { animation-delay: -4s; }
+@keyframes gust { from { stroke-dashoffset: 260; } to { stroke-dashoffset: -260; } }
+
+.scene-bird { fill: none; stroke: #3d4b43; stroke-width: 2; stroke-linecap: round; }
+.scene-birds { animation: fly 26s linear infinite; }
+@keyframes fly { from { transform: translate(-120px, 10px); } 50% { transform: translate(420px, -8px); } to { transform: translate(980px, 6px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-tree, .scene-cloud, .scene-breeze__line, .scene-birds { animation: none; }
+}
+
 /* ---------- Footer ---------- */
 .site-footer { border-top: 1px solid var(--color-border); padding: var(--space-6) 0; color: var(--color-text-muted); font-size: var(--fs-small); }
