@@ -1,0 +1,65 @@
+/* Design tokens: see docs/design_system.md */
+:root {
+  --color-bg: #f7f9fb;
+  --color-surface: #ffffff;
+  --color-surface-2: #eef2f6;
+  --color-text: #1b2330;
+  --color-text-muted: #4a5565;
+  --color-primary: #0b6e99;
+  --color-primary-contrast: #ffffff;
+  --color-border: #d5dce4;
+  --color-focus: #0b6e99;
+  --color-danger: #b3261e;
+  --color-danger-contrast: #ffffff;
+
+  /* AQI: badge text on tinted background (AA contrast) */
+  --aqi-good-fg: #0b3d21;       --aqi-good-bg: #d7f2e1;       --aqi-good: #2e9e5b;
+  --aqi-satisfactory-fg: #2e4a0e; --aqi-satisfactory-bg: #ecf6dc; --aqi-satisfactory: #8bc34a;
+  --aqi-moderate-fg: #4d3b00;   --aqi-moderate-bg: #fff4c7;   --aqi-moderate: #f2c200;
+  --aqi-poor-fg: #5a2e00;       --aqi-poor-bg: #ffe5c2;       --aqi-poor: #f08c00;
+  --aqi-very-poor-fg: #5c0b06;  --aqi-very-poor-bg: #fbd9d6;  --aqi-very-poor: #d93025;
+  --aqi-severe-fg: #ffffff;     --aqi-severe-bg: #7e1f3b;     --aqi-severe: #7e1f3b;
+
+  --advice-safe-fg: #0b3d21;    --advice-safe-bg: #d7f2e1;
+  --advice-caution-fg: #4d3b00; --advice-caution-bg: #fff4c7;
+  --advice-avoid-fg: #5c0b06;   --advice-avoid-bg: #fbd9d6;
+
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  --fs-display: 3rem;
+  --fs-h1: 1.75rem;
+  --fs-h2: 1.375rem;
+  --fs-h3: 1.125rem;
+  --fs-body: 1rem;
+  --fs-small: 0.875rem;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-pill: 999px;
+  --shadow-card: 0 1px 3px rgb(0 0 0 / 0.08);
+  --max-width: 1100px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #0f1419;
+    --color-surface: #1a2027;
+    --color-surface-2: #232b34;
+    --color-text: #e8ecf1;
+    --color-text-muted: #a9b3c1;
+    --color-primary: #5bb8e0;
+    --color-primary-contrast: #0f1419;
+    --color-border: #2e3843;
+    --color-focus: #5bb8e0;
+    --color-danger: #f2b8b5;
+    --color-danger-contrast: #3a0b08;
+    --shadow-card: 0 1px 3px rgb(0 0 0 / 0.4);
+  }
+}

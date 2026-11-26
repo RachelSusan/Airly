@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="BreatheWise helps families plan safer days during smog: live AQI, the cleanest hours, family protection checklists and emission what-ifs.">
+  <meta name="color-scheme" content="light dark">
+  <title>BreatheWise: Urban Air Quality Assistant</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <script type="module" src="/js/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="#dashboard" aria-label="BreatheWise home">
+        <svg class="brand__logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+          <circle cx="16" cy="16" r="15" class="brand__ring"></circle>
+          <path d="M8 18c4-6 12-6 16 0M10 22c3-3 9-3 12 0M12 14c2-2 6-2 8 0" class="brand__wave"></path>
+        </svg>
+        <span>BreatheWise</span>
+      </a>
+      <nav class="tabs" aria-label="Main">
+        <a class="tabs__link" href="#dashboard" data-view="dashboard">Air now</a>
+        <a class="tabs__link" href="#planner" data-view="planner">Day planner</a>
+        <a class="tabs__link" href="#family" data-view="family">Family</a>
+        <a class="tabs__link" href="#assistant" data-view="assistant">Ask</a>
+        <a class="tabs__link" href="#simulator" data-view="simulator">What if?</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="location-bar" aria-label="Location">
+    <div class="container">
+      <form id="location-form" class="location-form" role="search" novalidate>
+        <label for="city-input" class="location-form__label">Your city</label>
+        <div class="location-form__row">
+          <input id="city-input" name="city" type="text" autocomplete="address-level2"
+                 minlength="2" maxlength="80" placeholder="e.g. Delhi, Lucknow, Kolkata" required
+                 aria-describedby="location-status">
+          <button type="submit" class="btn btn--primary">Search</button>
+          <button type="button" id="geo-button" class="btn btn--secondary">Use my location</button>
+        </div>
+        <p id="location-status" class="location-form__status" role="status"></p>
+        <ul id="city-results" class="city-results" aria-label="Search results" hidden></ul>
+      </form>
+    </div>
+  </section>
+
+  <main id="main" class="container" tabindex="-1">
+    <h1 id="view-title" class="view-title">Air now</h1>
+    <div id="view" aria-live="off"></div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>Air data: <a href="https://open-meteo.com/" rel="noopener">Open-Meteo</a> (modelled, not a monitoring station). AQI: India NAQI categories (CPCB), estimated from hourly values.</p>
+      <p>BreatheWise gives general guidance, not medical advice. If you have symptoms, contact a doctor.</p>
+    </div>
+  </footer>
+
+  <dialog id="confirm-dialog" class="dialog" aria-labelledby="confirm-title">
+    <form method="dialog" class="dialog__form">
+      <h2 id="confirm-title" class="dialog__title">Are you sure?</h2>
+      <p id="confirm-text"></p>
+      <div class="dialog__actions">
+        <button value="cancel" class="btn btn--secondary">Cancel</button>
+        <button value="confirm" class="btn btn--danger">Delete</button>
+      </div>
+    </form>
+  </dialog>
+</body>
+</html>
