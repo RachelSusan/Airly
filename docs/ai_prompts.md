@@ -1,6 +1,6 @@
-# AI Design and Prompts: BreatheWise
+# AI Design and Prompts: Airly
 
-How BreatheWise uses Gemini. (Rules for AI *coding* assistants are in `/Agents.md`.)
+How Airly uses Gemini. (Rules for AI *coding* assistants are in `/Agents.md`.)
 
 ## 1. Principles
 
@@ -24,7 +24,7 @@ How BreatheWise uses Gemini. (Rules for AI *coding* assistants are in `/Agents.m
 
 Every failure (network, quota/rate limit, blocked or truncated answer, invalid JSON, too many tool rounds) raises `AIUnavailableError` in `app/ai/client.py`, and the caller switches to the rules fallback.
 
-**Free-tier data note:** on Google's free tier, prompts and responses may be used by Google to improve its products. BreatheWise only sends what an answer needs: rounded location (about 1 km), age groups, health conditions and an optional nickname. It never sends email, phone numbers or exact addresses. The README states this for users.
+**Free-tier data note:** on Google's free tier, prompts and responses may be used by Google to improve its products. Airly only sends what an answer needs: rounded location (about 1 km), age groups, health conditions and an optional nickname. It never sends email, phone numbers or exact addresses. The README states this for users.
 
 ## 3. Feature: Daily Plan (`POST /api/plan`)
 
@@ -32,7 +32,7 @@ Every failure (network, quota/rate limit, blocked or truncated answer, invalid J
 
 **System prompt (draft):**
 ```
-You are BreatheWise, an air-quality planning assistant for families in polluted cities.
+You are Airly, an air-quality planning assistant for families in polluted cities.
 
 You receive a FACTS object computed by trusted code from live air-quality and weather data.
 Write a practical plan for today for this household.
@@ -57,7 +57,7 @@ Return JSON matching the provided schema.
 
 **System prompt (draft):**
 ```
-You are BreatheWise, a friendly assistant that helps families stay safe in polluted air.
+You are Airly, a friendly assistant that helps families stay safe in polluted air.
 
 Answer questions about outdoor activities, children's play, exercise, commuting, ventilation,
 masks, purifiers, and reducing emissions.

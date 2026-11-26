@@ -14,7 +14,7 @@ const VIEWS = {
   dashboard: { title: "Air now", render: renderDashboard, needsLocation: true },
   planner: { title: "Today's plan", render: renderPlanner, needsLocation: true },
   family: { title: "Family profiles", render: renderFamily, needsLocation: false },
-  assistant: { title: "Ask BreatheWise", render: renderAssistant, needsLocation: true },
+  assistant: { title: "Ask Airly", render: renderAssistant, needsLocation: true },
   simulator: { title: "What if? Pollution simulator", render: renderSimulator, needsLocation: false },
 };
 
@@ -32,7 +32,7 @@ function showView({ focus = false } = {}) {
   const name = viewName();
   const view = VIEWS[name];
   titleEl.textContent = view.title;
-  document.title = `${view.title} · BreatheWise`;
+  document.title = `${view.title} · Airly`;
   document.querySelectorAll(".tabs__link").forEach((link) => {
     if (link.dataset.view === name) link.setAttribute("aria-current", "page");
     else link.removeAttribute("aria-current");

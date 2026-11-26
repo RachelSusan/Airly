@@ -1,4 +1,4 @@
-# BreatheWise — Urban Air Quality Assistant
+# Airly — Urban Air Quality Assistant
 
 > A GenAI-powered assistant that helps families and communities get through severe winter smog and urban air pollution. It plans safer daily routines, protects every family member, and explains what each choice changes.
 
@@ -23,7 +23,7 @@
 
 ## Approach and logic
 
-BreatheWise follows one rule: **code does the numbers, Gemini does the language.**
+Airly follows one rule: **code does the numbers, Gemini does the language.**
 
 ```
 Live data (Open-Meteo) ──► Rule engine (AQI, risk, time windows) ──┐
@@ -51,7 +51,7 @@ User + family profile ───────────────────�
 - AQI follows India's **NAQI (CPCB)** categories, calculated from hourly concentrations. The official index uses 24-hour or 8-hour averages, so ours is a close estimate.
 - Emission factors and exposure-reduction figures are published averages. See [docs/impact_methodology.md](docs/impact_methodology.md).
 - Family profiles stay **in the user's browser**. The server keeps no personal data.
-- AI answers come from Google Gemini's free tier, where Google may use prompts to improve its products. BreatheWise sends only rounded location, age groups, conditions and an optional nickname: never email, phone numbers or addresses.
+- AI answers come from Google Gemini's free tier, where Google may use prompts to improve its products. Airly sends only rounded location, age groups, conditions and an optional nickname: never email, phone numbers or addresses.
 - This is guidance, not medical advice.
 
 ## Tech stack
@@ -105,4 +105,4 @@ Maps: satellite imagery and labels © Esri, Maxar, Earthstar Geographics; street
 
 ## Disclaimer
 
-BreatheWise gives general guidance about air pollution. It is not a substitute for medical advice. People with respiratory or heart conditions should follow their doctor's guidance.
+Airly gives general guidance about air pollution. It is not a substitute for medical advice. People with respiratory or heart conditions should follow their doctor's guidance.

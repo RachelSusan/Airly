@@ -1,4 +1,4 @@
-# Code Style: BreatheWise
+# Code Style: Airly
 
 Goal: code that a judge can read in five minutes and understand. **Readable, consistent, small.**
 

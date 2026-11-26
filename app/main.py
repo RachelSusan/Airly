@@ -73,7 +73,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             yield
 
     app = FastAPI(
-        title="BreatheWise API",
+        title="Airly API",
         version=__version__,
         lifespan=lifespan,
         docs_url=None if settings.is_production else "/docs",

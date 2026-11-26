@@ -1,6 +1,7 @@
 // Client-side state. Family profiles never leave this device except in the requests that need them.
 
-const KEY = "breathewise:v1";
+const KEY = "airly:v1";
+const LEGACY_KEY = "breathewise:v1"; // the app was called BreatheWise before it became Airly
 const VERSION = 1;
 
 function today() {
@@ -23,7 +24,15 @@ function defaults() {
 
 function load() {
   try {
-    const raw = localStorage.getItem(KEY);
+    let raw = localStorage.getItem(KEY);
+    if (!raw) {
+      // Carry over profiles saved under the old app name, once.
+      raw = localStorage.getItem(LEGACY_KEY);
+      if (raw) {
+        localStorage.setItem(KEY, raw);
+        localStorage.removeItem(LEGACY_KEY);
+      }
+    }
     if (!raw) return defaults();
     const parsed = JSON.parse(raw);
     if (parsed?.version !== VERSION) return defaults();
@@ -86,6 +95,7 @@ export const store = {
   clear() {
     try {
       localStorage.removeItem(KEY);
+      localStorage.removeItem(LEGACY_KEY);
     } catch {
       // ignore
     }

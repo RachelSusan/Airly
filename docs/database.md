@@ -1,8 +1,8 @@
-# Data and Storage: BreatheWise
+# Data and Storage: Airly
 
 ## 1. Storage decision: no server-side database
 
-BreatheWise deliberately runs **without a server database**.
+Airly deliberately runs **without a server database**.
 
 | Data | Where it lives | Why |
 |---|---|---|
@@ -17,7 +17,7 @@ BreatheWise deliberately runs **without a server database**.
 
 ## 2. Client-side data model
 
-Stored under one versioned key, `breathewise:v1`.
+Stored under one versioned key, `airly:v1`. Data saved by the earlier name (`breathewise:v1`) is moved to the new key once, on first load.
 
 ```jsonc
 {
@@ -62,7 +62,7 @@ Stored under one versioned key, `breathewise:v1`.
 ### Rules
 - Max 10 members per household. Names are at most 40 characters. Numbers have bounded ranges (validated again on the server).
 - Schema version `1`. A migration function upgrades older versions on load.
-- **Clear my data:** one button removes the `breathewise:v1` key.
+- **Clear my data:** one button removes the `airly:v1` key.
 
 ## 3. Server-side domain models (in memory, per request)
 

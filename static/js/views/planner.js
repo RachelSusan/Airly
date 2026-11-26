@@ -34,7 +34,7 @@ export function renderPlanner(root, state) {
   const button = h("button", { type: "button", class: "btn btn--primary", onclick: () => load(output, button) }, "Make today's plan");
   render(
     root,
-    h("p", {}, "BreatheWise reads the live forecast and your family profiles, then plans the cleanest times for each activity."),
+    h("p", {}, "Airly reads the live forecast and your family profiles, then plans the cleanest times for each activity."),
     h("div", { class: "actions" }, button),
     output,
   );

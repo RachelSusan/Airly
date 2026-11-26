@@ -1,8 +1,8 @@
-# Architecture: BreatheWise
+# Architecture: Airly
 
 ## 1. Overview
 
-BreatheWise is a single **FastAPI** service. It serves a static, framework-free frontend and a JSON API. The work is split into layers with one-way dependencies:
+Airly is a single **FastAPI** service. It serves a static, framework-free frontend and a JSON API. The work is split into layers with one-way dependencies:
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
@@ -33,7 +33,7 @@ BreatheWise is a single **FastAPI** service. It serves a static, framework-free 
 ## 2. Folder structure
 
 ```
-BreatheWise/
+BreatheWise/            (repository root; the app is called Airly)
 ├── app/
 │   ├── main.py              # App factory: middleware, routers, static files
 │   ├── config.py            # Settings from environment (pydantic-settings)

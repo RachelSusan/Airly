@@ -1,4 +1,4 @@
-# Tasks and Progress: BreatheWise
+# Tasks and Progress: Airly
 
 Deadline: **29 Nov 2026, 11:59 PM IST** · Submissions: at most 3 · Video mandatory
 

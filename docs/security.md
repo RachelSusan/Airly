@@ -1,4 +1,4 @@
-# Security: BreatheWise
+# Security: Airly
 
 Security goal: **safe and responsible implementation.** Protect secrets, protect users' health data, resist abuse, and keep the AI grounded.
 

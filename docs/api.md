@@ -1,4 +1,4 @@
-# API Reference: BreatheWise
+# API Reference: Airly
 
 Base path: `/api` · Format: JSON (UTF-8) · Interactive docs at `/docs` in development only.
 

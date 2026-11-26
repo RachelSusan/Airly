@@ -1,4 +1,4 @@
-# Design System: BreatheWise
+# Design System: Airly
 
 A calm, trustworthy, readable interface. Health information must be clear at a glance, and colour is **never** the only signal.
 

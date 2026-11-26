@@ -45,7 +45,7 @@ export function renderAssistant(root) {
     log.append(message({ role: "user", content: text }));
     input.value = "";
     send.disabled = true;
-    status.textContent = "BreatheWise is checking live data…";
+    status.textContent = "Airly is checking live data…";
     try {
       const state = store.get();
       const reply = await api.chat({
@@ -108,7 +108,7 @@ function message(entry) {
   return h(
     "li",
     { class: `msg msg--${entry.role}` },
-    h("span", { class: "visually-hidden" }, entry.role === "user" ? "You said: " : "BreatheWise: "),
+    h("span", { class: "visually-hidden" }, entry.role === "user" ? "You said: " : "Airly: "),
     entry.content,
     meta,
   );

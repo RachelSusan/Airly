@@ -1,5 +1,5 @@
 [project]
-name = "breathewise"
+name = "airly"
 version = "0.1.0"
 description = "GenAI-powered Urban Air Quality Assistant"
 requires-python = ">=3.12"

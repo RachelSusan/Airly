@@ -1,6 +1,6 @@
-# Impact Methodology: BreatheWise
+# Impact Methodology: Airly
 
-How BreatheWise calculates AQI, risk, exposure and emission impacts. All of these are **deterministic code** in `app/engine/`. Gemini only explains the results.
+How Airly calculates AQI, risk, exposure and emission impacts. All of these are **deterministic code** in `app/engine/`. Gemini only explains the results.
 
 > **Honesty rule:** the simulator reports **estimated emission changes** and **personal exposure changes**. It never predicts a change in local AQI, which depends on regional weather, transport of pollution and thousands of sources.
 

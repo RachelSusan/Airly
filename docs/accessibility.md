@@ -1,4 +1,4 @@
-# Accessibility: BreatheWise
+# Accessibility: Airly
 
 Target: **WCAG 2.2 Level AA.** Air-quality advice is health information, so everyone must be able to perceive and act on it, including people using screen readers, keyboards, magnification or slow phones.
 
@@ -37,7 +37,7 @@ Screen reader output: "Air quality now in New Delhi, heading. 342 Very Poor. Mai
 
 ### Chat assistant
 - The message list has `role="log"` and `aria-live="polite"`, so new replies are announced.
-- A "BreatheWise is thinking…" status message uses `role="status"`.
+- An "Airly is thinking…" status message uses `role="status"`.
 - The input has a visible label "Ask about the air". Enter sends; Shift+Enter adds a new line.
 - Quick-question chips are real `<button>`s.
 

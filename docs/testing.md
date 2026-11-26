@@ -1,4 +1,4 @@
-# Testing Strategy: BreatheWise
+# Testing Strategy: Airly
 
 Goal: **prove the logic is correct and the app is safe**, quickly and repeatably, with no network access and no AI costs during tests.
 

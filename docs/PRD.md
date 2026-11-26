@@ -1,8 +1,8 @@
-# Product Requirements Document: BreatheWise
+# Product Requirements Document: Airly
 
 | | |
 |---|---|
-| **Product** | BreatheWise: Urban Air Quality Assistant |
+| **Product** | Airly: Urban Air Quality Assistant |
 | **Challenge** | PromptWars Virtual, Challenge 6 |
 | **Deadline** | 29 Nov 2026, 11:59 PM IST |
 | **Status** | Draft v1 |

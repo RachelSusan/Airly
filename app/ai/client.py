@@ -1,4 +1,4 @@
-"""Thin wrapper around the Google Gen AI SDK (Gemini) with BreatheWise's defaults.
+"""Thin wrapper around the Google Gen AI SDK (Gemini) with Airly's defaults.
 
 Every failure (network, quota, safety block, truncation, bad JSON, too many tool rounds)
 becomes ``AIUnavailableError`` so callers can switch to the rules fallback in one place.
