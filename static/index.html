@@ -48,13 +48,24 @@
   <section class="location-bar" aria-label="Location">
     <div class="container">
       <form id="location-form" class="location-form" role="search" novalidate>
-        <label for="city-input" class="location-form__label">Your city</label>
-        <div class="location-form__row">
-          <input id="city-input" name="city" type="text" autocomplete="address-level2"
-                 minlength="2" maxlength="80" placeholder="e.g. Delhi, Lucknow, Kolkata" required
-                 aria-describedby="location-status">
-          <button type="submit" class="btn btn--primary">Search</button>
-          <button type="button" id="geo-button" class="btn btn--secondary">Use my location</button>
+        <div class="location-form__grid">
+          <div class="location-form__field">
+            <label for="city-select" class="location-form__label">Pick a city in India</label>
+            <select id="city-select" name="city-select">
+              <option value="">Choose a city…</option>
+            </select>
+          </div>
+          <div class="location-form__field location-form__field--grow">
+            <label for="city-input" class="location-form__label">Or search any town</label>
+            <div class="location-form__row">
+              <input id="city-input" name="city" type="text" autocomplete="off" list="city-suggestions"
+                     minlength="2" maxlength="80" placeholder="Start typing, e.g. Lucknow" required
+                     aria-describedby="location-status">
+              <datalist id="city-suggestions"></datalist>
+              <button type="submit" class="btn btn--primary">Search</button>
+              <button type="button" id="geo-button" class="btn btn--secondary">Use my location</button>
+            </div>
+          </div>
         </div>
         <p id="location-status" class="location-form__status" role="status"></p>
         <ul id="city-results" class="city-results" aria-label="Search results" hidden></ul>

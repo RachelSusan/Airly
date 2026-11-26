@@ -60,6 +60,10 @@
 }
 .location-form__label { display: block; font-weight: 600; margin-bottom: var(--space-1); }
 .location-form__row { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.location-form__grid { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-4); align-items: flex-end; }
+.location-form__field { display: grid; min-width: 220px; }
+.location-form__field--grow { flex: 1 1 420px; }
+.location-form__field select { width: 100%; }
 .location-form__row input { flex: 1 1 220px; }
 .location-form__status { margin: var(--space-2) 0 0; color: var(--color-text-muted); min-height: 1.5em; }
 .city-results {

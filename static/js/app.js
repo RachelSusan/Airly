@@ -1,5 +1,6 @@
 // App shell: routing, location search and view rendering.
 import { api } from "./api.js";
+import { CITIES, COUNTRY, findCity, nearestCity } from "./cities.js";
 import { h, render } from "./dom.js";
 import { mountScene, updateScene } from "./scene.js";
 import { store } from "./store.js";
@@ -64,7 +65,7 @@ function showLocationChip(loc) {
   render(
     chip,
     h("span", { class: "view-location__pin", "aria-hidden": "true" }, "📍"),
-    h("span", {}, `Using live data for ${loc.name}`),
+    h("span", {}, `Using live data for ${locationLabel(loc)}`),
     h(
       "button",
       {
@@ -78,10 +79,18 @@ function showLocationChip(loc) {
   chip.hidden = false;
 }
 
+/** Human-readable label; GPS locations are described by the nearest listed city. */
+function locationLabel(loc) {
+  if (!loc.gps) return loc.name;
+  return loc.near ? `your location near ${loc.near}` : "your location";
+}
+
 function setLocation(loc) {
   store.update({ location: loc });
-  updateScene({ city: loc.name });
-  statusEl.textContent = `Showing air quality for ${loc.name}.`;
+  updateScene({ city: loc.name, nearYou: Boolean(loc.gps) });
+  statusEl.textContent = `Showing air quality for ${locationLabel(loc)}.`;
+  const select = document.getElementById("city-select");
+  select.value = CITIES.some((c) => c.name === loc.name) && !loc.gps ? loc.name : "";
   render(resultsEl);
   resultsEl.hidden = true;
   showView();
@@ -96,9 +105,14 @@ async function searchCity(event) {
     input.focus();
     return;
   }
+  const listed = findCity(query);
+  if (listed) {
+    setLocation(cityToLocation(listed));
+    return;
+  }
   statusEl.textContent = "Searching…";
   try {
-    const { results } = await api.geocode(query);
+    const { results } = await api.geocode(query, COUNTRY.code);
     if (!results.length) {
       statusEl.textContent = `No places found for "${query}". Check the spelling and try again.`;
       return;
@@ -141,6 +155,32 @@ function placeToLocation(place) {
   return { name: placeLabel(place), lat: place.lat, lon: place.lon };
 }
 
+function cityToLocation(city) {
+  return { name: city.name, lat: city.lat, lon: city.lon };
+}
+
+/** Location object for GPS coordinates, named after the nearest listed city if close. */
+function gpsLocation(lat, lon) {
+  const near = nearestCity(lat, lon);
+  return { name: near ? near.name : "Your area", lat, lon, gps: true, near: near?.city ?? null };
+}
+
+function setupCityPicker() {
+  const select = document.getElementById("city-select");
+  const datalist = document.getElementById("city-suggestions");
+  for (const city of CITIES) {
+    select.append(h("option", { value: city.name }, `${city.city}, ${city.state}`));
+    datalist.append(h("option", { value: city.name }));
+  }
+  select.addEventListener("change", () => {
+    const city = CITIES.find((c) => c.name === select.value);
+    if (city) {
+      document.getElementById("city-input").value = "";
+      setLocation(cityToLocation(city));
+    }
+  });
+}
+
 function useMyLocation() {
   if (!("geolocation" in navigator)) {
     statusEl.textContent = "Location isn't available in this browser. Search for your city instead.";
@@ -151,7 +191,7 @@ function useMyLocation() {
     (pos) => {
       const lat = Math.round(pos.coords.latitude * 100) / 100;
       const lon = Math.round(pos.coords.longitude * 100) / 100;
-      setLocation({ name: "your location", lat, lon });
+      setLocation(gpsLocation(lat, lon));
     },
     () => {
       statusEl.textContent = "Couldn't get your location. Search for your city instead.";
@@ -177,14 +217,21 @@ function setupSceneToggle() {
 function init() {
   mountScene(document.getElementById("scene"));
   setupSceneToggle();
+  setupCityPicker();
   document.getElementById("location-form").addEventListener("submit", searchCity);
   document.getElementById("geo-button").addEventListener("click", useMyLocation);
   window.addEventListener("hashchange", () => showView({ focus: true }));
-  const loc = store.get().location;
+  let loc = store.get().location;
+  if (loc && loc.name === "your location") {
+    loc = gpsLocation(loc.lat, loc.lon); // upgrade locations saved by an older version
+    store.update({ location: loc });
+  }
   if (loc) {
-    updateScene({ city: loc.name });
-    document.getElementById("city-input").value = loc.name === "your location" ? "" : loc.name;
-    statusEl.textContent = `Showing air quality for ${loc.name}.`;
+    updateScene({ city: loc.name, nearYou: Boolean(loc.gps) });
+    const listed = CITIES.some((c) => c.name === loc.name) && !loc.gps;
+    document.getElementById("city-select").value = listed ? loc.name : "";
+    document.getElementById("city-input").value = listed || loc.gps ? "" : loc.name;
+    statusEl.textContent = `Showing air quality for ${locationLabel(loc)}.`;
   }
   showView();
 }

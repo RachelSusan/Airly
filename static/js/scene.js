@@ -24,6 +24,7 @@ export function mountScene(host) {
     img: h("img", { class: "hero__img", alt: "", decoding: "async" }),
     haze: h("div", { class: "hero__haze", "aria-hidden": "true" }),
     mist: h("div", { class: "hero__mist", "aria-hidden": "true" }),
+    eyebrow: h("p", { class: "hero__eyebrow" }, "Live air quality"),
     city: h("p", { class: "hero__city" }, "Breathe easier, every day"),
     aqi: h("p", { class: "hero__aqi" }, "Choose your city to see live air quality."),
     credit: h("p", { class: "hero__credit" }),
@@ -39,7 +40,7 @@ export function mountScene(host) {
       h(
         "div",
         { class: "hero__content container" },
-        h("p", { class: "hero__eyebrow" }, "Live air quality"),
+        parts.eyebrow,
         parts.city,
         parts.aqi,
       ),
@@ -50,12 +51,13 @@ export function mountScene(host) {
 }
 
 /** Show the city's photo, name and (when known) live AQI with a matching smog tint. */
-export function updateScene({ city, category, label, aqi }) {
+export function updateScene({ city, category, label, aqi, nearYou = false }) {
   if (!parts) return;
   const name = (city || "").split(",")[0].trim();
   const key = (city || "").toLowerCase();
   setPhoto(PHOTOS.find((p) => p.match.some((m) => key.includes(m))) ?? DEFAULT_PHOTO);
   if (name) parts.city.textContent = name;
+  parts.eyebrow.textContent = nearYou ? "Live air quality · near you" : "Live air quality";
   if (category) {
     parts.haze.dataset.category = category;
     parts.aqi.replaceChildren(h("span", { class: "hero__number" }, `AQI ${aqi}`), " ", categoryBadge(category, label));

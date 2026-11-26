@@ -23,6 +23,7 @@ export async function renderDashboard(root, state) {
       category: data.current.category,
       label: data.current.label,
       aqi: data.current.aqi,
+      nearYou: Boolean(state.location.gps),
     });
     render(root, view(data, state));
   } catch (error) {
@@ -50,7 +51,7 @@ function view(data, state) {
       h(
         "div",
         { class: "card" },
-        h("h2", { id: "aqi-title", class: "card__title" }, `Air quality now in ${state.location.name}`),
+        h("h2", { id: "aqi-title", class: "card__title" }, `Air quality now in ${state.location.gps && state.location.near ? `your area (near ${state.location.near})` : state.location.name}`),
         h(
           "p",
           { class: "aqi-value" },

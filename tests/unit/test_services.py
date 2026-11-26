@@ -98,6 +98,20 @@ async def test_geocoding_parses_results_and_skips_bad_rows(load_fixture: Loader)
 
 
 @respx.mock
+async def test_geocoding_country_filter_sent_and_cached_separately(load_fixture: Loader) -> None:
+    route = respx.get(GEOCODING_URL).mock(
+        return_value=httpx.Response(200, json=load_fixture("geocoding.json"))
+    )
+    async with httpx.AsyncClient() as client:
+        service = _geo_service(client)
+        await service.search("Delhi", "IN")
+        await service.search("Delhi")
+    assert route.call_count == 2
+    assert route.calls[0].request.url.params["countryCode"] == "IN"
+    assert "countryCode" not in route.calls[1].request.url.params
+
+
+@respx.mock
 async def test_geocoding_empty_query_makes_no_request() -> None:
     route = respx.get(GEOCODING_URL)
     async with httpx.AsyncClient() as client:

@@ -13,6 +13,17 @@ def test_geocode_returns_results(make_client: MakeClient) -> None:
     assert response.json()["results"][0]["name"] == "New Delhi"
 
 
+def test_geocode_passes_country_filter(make_client: MakeClient) -> None:
+    client = make_client()
+    assert client.get("/api/geocode", params={"q": "Pune", "country": "IN"}).status_code == 200
+    assert client.app.state.geocoding_service.calls[-1] == ("Pune", "IN")
+
+
+def test_geocode_rejects_bad_country(make_client: MakeClient) -> None:
+    response = make_client().get("/api/geocode", params={"q": "Pune", "country": "india"})
+    assert response.status_code == 422
+
+
 def test_geocode_rejects_bad_query(make_client: MakeClient) -> None:
     response = make_client().get("/api/geocode", params={"q": "<script>"})
     assert response.status_code == 422

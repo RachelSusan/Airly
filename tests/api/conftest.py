@@ -33,7 +33,11 @@ class FakeAirService:
 
 
 class FakeGeocoding:
-    async def search(self, query: str) -> list[Place]:
+    def __init__(self) -> None:
+        self.calls: list[tuple[str, str | None]] = []
+
+    async def search(self, query: str, country: str | None = None) -> list[Place]:
+        self.calls.append((query, country))
         return [Place(name="New Delhi", country="India", lat=28.64, lon=77.22)]
 
 

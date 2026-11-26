@@ -21,8 +21,12 @@ class GeocodingService:
         self._http = http
         self._cache = cache
 
-    async def search(self, query: str) -> list[Place]:
-        """Return up to ``MAX_RESULTS`` places matching ``query``.
+    async def search(self, query: str, country: str | None = None) -> list[Place]:
+        """Return up to ``MAX_RESULTS`` places matching ``query``, optionally in one country.
+
+        Args:
+            query: Place name.
+            country: Optional ISO 3166-1 alpha-2 code, e.g. ``"IN"``.
 
         Raises:
             UpstreamError: if the provider fails and nothing is cached.
@@ -31,12 +35,19 @@ class GeocodingService:
         if not normalised:
             return []
         places, _ = await self._cache.get_or_load(
-            f"geo:{normalised}", lambda: self._fetch(normalised)
+            f"geo:{country or '*'}:{normalised}", lambda: self._fetch(normalised, country)
         )
         return places
 
-    async def _fetch(self, query: str) -> list[Place]:
-        params = {"name": query, "count": MAX_RESULTS, "language": "en", "format": "json"}
+    async def _fetch(self, query: str, country: str | None) -> list[Place]:
+        params: dict[str, str | int] = {
+            "name": query,
+            "count": MAX_RESULTS,
+            "language": "en",
+            "format": "json",
+        }
+        if country:
+            params["countryCode"] = country
         try:
             response = await self._http.get(GEOCODING_URL, params=params)
             response.raise_for_status()

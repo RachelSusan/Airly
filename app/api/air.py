@@ -39,9 +39,10 @@ DASHBOARD_ACTIVITIES = (Activity.WALK, Activity.JOG, Activity.PLAY, Activity.COM
 async def geocode(
     q: Annotated[str, Query(min_length=2, max_length=80, pattern=QUERY_PATTERN)],
     service: Annotated[GeocodingService, Depends(get_geocoding_service)],
+    country: Annotated[str | None, Query(pattern=r"^[A-Z]{2}$")] = None,
 ) -> GeocodeResponse:
-    """Search for a city by name."""
-    return GeocodeResponse(results=await service.search(q))
+    """Search for a city by name, optionally limited to one country (e.g. ``IN``)."""
+    return GeocodeResponse(results=await service.search(q, country))
 
 
 @router.get("/air")

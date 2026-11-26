@@ -33,7 +33,8 @@ async function request(path, { method = "GET", body } = {}) {
 }
 
 export const api = {
-  geocode: (q) => request(`/api/geocode?q=${encodeURIComponent(q)}`),
+  geocode: (q, country) =>
+    request(`/api/geocode?q=${encodeURIComponent(q)}${country ? `&country=${country}` : ""}`),
   air: ({ lat, lon }) => request(`/api/air?lat=${lat}&lon=${lon}`),
   grid: ({ lat, lon }) => request(`/api/air/grid?lat=${lat}&lon=${lon}`),
   plan: (body) => request("/api/plan", { method: "POST", body }),

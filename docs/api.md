@@ -39,8 +39,8 @@ Base path: `/api` · Format: JSON (UTF-8) · Interactive docs at `/docs` in deve
 { "status": "ok", "version": "1.0.0" }
 ```
 
-## `GET /api/geocode?q={query}`
-`q`: 2–80 characters (letters, spaces, commas, hyphens and periods).
+## `GET /api/geocode?q={query}&country={code}`
+`q`: 2–80 characters (letters, spaces, commas, hyphens and periods). `country` (optional): ISO 3166-1 alpha-2 code such as `IN`; the frontend sends `IN`. The 62 major Indian cities in `static/js/cities.js` are picked without calling this endpoint.
 ```json
 {
   "results": [
