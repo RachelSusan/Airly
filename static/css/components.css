@@ -131,7 +131,7 @@ input, select, textarea {
 }
 textarea { border-radius: var(--radius-md); min-height: 96px; resize: vertical; width: 100%; }
 input:hover, select:hover, textarea:hover { border-color: var(--color-text-muted); }
-input[type="checkbox"], input[type="radio"] { min-height: auto; width: 20px; height: 20px; accent-color: var(--color-primary); }
+input[type="checkbox"], input[type="radio"] { min-height: auto; width: 24px; height: 24px; accent-color: var(--color-primary); }
 
 .btn {
   font: inherit;
@@ -205,7 +205,7 @@ fieldset.field { border: 0; padding: 0; margin: 0 0 var(--space-4); }
 /* ================= Location chip ================= */
 .view-location { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin: 0 0 var(--space-6); color: var(--color-text-muted); }
 .view-location__pin { color: var(--color-primary); }
-.view-location__sep { color: var(--color-border); }
+.view-location__sep { color: var(--color-text-muted); }
 .view-location__clock { display: inline-flex; align-items: center; gap: var(--space-1); font-weight: 600; color: var(--color-ink); font-variant-numeric: tabular-nums; }
 .view-location__clock::before { content: "🕒"; font-weight: 400; }
 
@@ -263,7 +263,7 @@ fieldset.field { border: 0; padding: 0; margin: 0 0 var(--space-4); }
 .trend-labels span { flex: 1 1 0; min-width: 6px; text-align: center; white-space: nowrap; }
 .trend-counts { list-style: none; margin: 0 0 var(--space-3); padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); font-size: var(--fs-small); }
 .chip[aria-pressed="true"] { background: var(--color-ink); color: #ffffff; }
-.msg__meta--user { color: rgb(255 255 255 / 0.8); }
+.msg--user .msg__meta { color: rgb(255 255 255 / 0.92); } /* white on olive: ~5:1 */
 
 .table-wrap { overflow-x: auto; margin-top: var(--space-3); }
 table { border-collapse: collapse; width: 100%; font-size: var(--fs-small); }
