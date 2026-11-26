@@ -50,9 +50,12 @@ def plan(facts: dict[str, Any]) -> PlanContent:
     if jog and routine:
         for item in routine:
             if item.activity == _ACTIVITY_LABELS["jog"]:
+                change = jog["change_pct"]
+                verb = "cuts" if change < 0 else "raises"
                 item.impact = (
                     f"{item.impact} Jogging at {jog['best_time']} instead of "
-                    f"{jog['worst_time']} changes the PM2.5 you breathe in by {jog['change_pct']}%."
+                    f"{jog['worst_time']} {verb} the PM2.5 you breathe in by about "
+                    f"{abs(change):.0f}%."
                 )
 
     return PlanContent(
@@ -217,7 +220,10 @@ def simulation_text(result: ScenarioResult) -> tuple[str, str]:
     direction = "avoids" if co2 < 0 else "adds"
     parts = [f"This change {direction} about {abs(co2):,.0f} kg of CO2 per {result.period}."]
     if result.pm25_g is not None and result.pm25_g != 0:
-        parts.append(f"Fine-particle (PM2.5) emissions change by {result.pm25_g:,.0f} g.")
+        trend = "fall" if result.pm25_g < 0 else "rise"
+        parts.append(
+            f"Fine-particle (PM2.5) emissions {trend} by about {abs(result.pm25_g):,.0f} g."
+        )
     if result.exposure_change_pct is not None:
         parts.append(
             f"The PM2.5 you breathe on the way changes by about {result.exposure_change_pct}%."

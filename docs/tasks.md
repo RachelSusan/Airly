@@ -16,12 +16,13 @@ Legend: `[ ]` to do · `[x]` done · `[~]` in progress
 - [x] CI workflow (lint, tests with coverage gate, `pip-audit`)
 
 ## Day 2: 27 Nov: AI and UI
-- [ ] `app/ai`: client, prompts, schemas, tools, fallback
-- [ ] Endpoints: `/api/air`, `/api/geocode`, `/api/plan`, `/api/chat`, `/api/scenarios`, `/api/simulate`
-- [ ] Rate limiting
-- [ ] API tests (AI mocked)
-- [ ] Frontend: tokens and base CSS, dashboard, planner, family profiles, checklist, chat, simulator
-- [ ] Accessibility pass (keyboard, labels, live regions, contrast)
+- [x] `app/ai`: client, prompts, schemas, tools, fallback, planner, assistant, simulator
+- [x] Endpoints: `/api/air`, `/api/geocode`, `/api/plan`, `/api/chat`, `/api/scenarios`, `/api/simulate`
+- [x] Rate limiting, 32 KB body limit, consistent error format
+- [x] API tests (AI mocked) and static accessibility checks (181 tests, 97% coverage)
+- [x] Frontend: tokens and base CSS, dashboard, planner, family profiles, checklist, chat, simulator
+- [~] Accessibility pass: labels, live regions, skip link, text + icon badges, mobile reflow done; NVDA and Lighthouse checks pending
+- [ ] Test the AI path with a real `ANTHROPIC_API_KEY` (all AI paths verified with mocks only so far)
 - [ ] Deploy (platform decision)
 - [ ] **Submission 1** (baseline, all modules working)
 

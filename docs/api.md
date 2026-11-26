@@ -17,6 +17,8 @@ Base path: `/api` · Format: JSON (UTF-8) · Interactive docs at `/docs` in deve
 | Status | Code | When |
 |---|---|---|
 | 400 | `bad_request` | Malformed input |
+| 411 | `length_required` | POST without `Content-Length` |
+| 413 | `payload_too_large` | Body over 32 KB |
 | 422 | `validation_error` | Field validation failed (includes `details[]`) |
 | 429 | `rate_limited` | Too many requests (`Retry-After` header) |
 | 503 | `upstream_unavailable` | Open-Meteo unavailable and no cached data |
@@ -57,11 +59,15 @@ Base path: `/api` · Format: JSON (UTF-8) · Interactive docs at `/docs` in deve
     "pollutants": { "pm2_5": 186.0, "pm10": 298.0, "no2": 64.0, "o3": 18.0, "co": 2.1, "so2": 12.0 },
     "weather": { "temperature_c": 14.2, "humidity_pct": 78, "wind_kmh": 4.1, "precip_mm": 0 }
   },
-  "forecast": [ { "time": "2026-11-26T10:00", "aqi": 318, "category": "very_poor", "advice": "avoid" } ],
-  "best_window": { "start": "2026-11-26T14:00", "end": "2026-11-26T16:00", "avg_aqi": 188, "advice": "caution" },
-  "fetched_at": "2026-11-26T09:04:12+05:30",
+  "forecast": [ { "time": "2026-11-26T10:00", "aqi": 318, "category": "very_poor", "label": "Very Poor", "advice": "avoid" } ],
+  "best_windows": {
+    "walk": { "activity": "walk", "start": "2026-11-26T14:00", "end": "2026-11-26T15:00", "avg_aqi": 188, "category": "moderate", "label": "Moderate", "advice": "caution", "guidance": "..." },
+    "jog": { "...": "..." }, "play": { "...": "..." }, "commute": { "...": "..." }
+  },
   "stale": false
 }
+```
+`current` also includes `label`, `advice` and `guidance` for a healthy adult. Hours without particulate data are left out of `forecast`.
 ```
 
 ## `POST /api/plan`
@@ -88,9 +94,11 @@ Base path: `/api` · Format: JSON (UTF-8) · Interactive docs at `/docs` in deve
   "routine": [
     { "activity": "jogging", "start": "14:00", "end": "15:00", "advice": "caution", "why": "Lowest PM2.5 of the day (~95 µg/m³).", "impact": "About 47% less PM2.5 inhaled than a 7 AM run." }
   ],
-  "commute": { "recommended_departure": "10:00", "why": "...", "alternative": { "mode": "metro", "impact": "Saves ~2.0 kg CO₂ per day." } },
-  "school": [ { "slot": "Recess 11:00", "advice": "avoid", "alternative": "Indoor games" } ],
+  "commute": { "recommended_departure": "10:00", "why": "...", "alternative_mode": "metro", "alternative_impact": "Saves about 874 kg CO₂ a year (estimate)." },
+  "school": [ { "slot": "Outdoor time 11:00-12:00", "advice": "avoid", "alternative": "Indoor games" } ],
   "indoor_tips": [ { "tip": "Keep windows closed until 2 PM", "why": "...", "impact": "..." } ],
+  "sustainable_choices": [ { "tip": "Try the metro for your commute", "why": "...", "impact": "..." } ],
+  "current": { "time": "09:00", "aqi": 342, "category": "Very Poor", "dominant": "pm2_5" },
   "members": [
     { "member_id": "m_1", "risk_level": "high", "alerts": ["No outdoor play before 2 PM"],
       "checklist": [ { "id": "carry_inhaler", "text": "Carry inhaler", "reason": "Asthma + Very Poor AQI" } ] }
@@ -107,7 +115,7 @@ Base path: `/api` · Format: JSON (UTF-8) · Interactive docs at `/docs` in deve
   "context": { "location": { "lat": 28.61, "lon": 77.21 }, "members": [ ] }
 }
 ```
-Limits: at most 20 messages, each at most 1,000 characters. Roles are `user` and `assistant` only.
+Limits: at most 20 messages, each at most 1,000 characters. Roles are `user` and `assistant` only, and the conversation must start and end with a `user` message. `context.household` is optional.
 
 **Response**
 ```json
@@ -147,8 +155,8 @@ Lists the preset scenarios with their input schemas and defaults.
 
 | `scenario_id` | Inputs |
 |---|---|
-| `avoid_peak_hours` | `distance_km`, `days_per_week`, `mode` |
-| `families_reduce_driving` | `families` (1–1,000,000), `km_per_day_reduced`, `days_per_week` |
+| `avoid_peak_hours` | `distance_km`, `days_per_week`, `mode`, `peak_hour`, `off_peak_hour` (plus optional top-level `location` to compute exposure change from the forecast) |
+| `families_reduce_driving` | `families` (1–1,000,000), `km_per_day_reduced`, `days_per_week`, `substitute` (default `walk`) |
 | `community_trees` | `trees` (1–100,000), `years` (1–20) |
 | `petrol_to_public` | `distance_km`, `days_per_week`, `to_mode` (`bus`, `metro`, `cycle`, `walk`, `ev_2w`) |
 | `custom_commute_switch` | `from_mode`, `to_mode`, `distance_km`, `days_per_week` |

@@ -51,7 +51,7 @@ Rules:
 Return JSON matching the provided schema.
 ```
 
-**Output schema (summary):** `summary`, `routine[] {activity, start, end, advice, why, impact}`, `commute {recommended_departure, why, alternative {mode, impact}}`, `school[] {slot, advice, alternative}`, `indoor_tips[] {tip, why, impact}`, `members[] {member_id, risk_level, alerts[], checklist[] {id, text, reason}}`. The full schema is in `app/ai/schemas.py`.
+**Output schema (summary):** `summary`, `routine[] {activity, start, end, advice, why, impact}`, `commute {recommended_departure, why, alternative_mode, alternative_impact} | null`, `school[] {slot, advice, alternative}`, `indoor_tips[]` and `sustainable_choices[] {tip, why, impact}`, `members[] {member_id, risk_level, alerts[], checklist[] {id, text, reason}}`. The schema is generated from the `PlanContent` Pydantic model by `strict_schema()` in `app/ai/schemas.py`, so the API model and Claude's schema can never drift apart.
 
 **Post-processing:** Pydantic validation. Member IDs must match the request, times must exist in the forecast, and `advice` must be in the allowed set. On any failure, use `fallback.plan(facts)`.
 
@@ -85,7 +85,7 @@ How to answer:
 | `get_forecast_windows` | `activity` (`walk`, `jog`, `play`, `commute`, `cycle`), `duration_hours` (1–4) | Best windows with advice and average AQI; worst hours |
 | `assess_family_risk` | `member_ids[]` (optional) | Per-member risk level, limits, alerts |
 | `check_ventilation` | none | Open or keep closed, best airing window, reason |
-| `simulate_scenario` | `scenario_id`, `inputs` | Same as `/api/simulate` (numbers and assumptions) |
+| `estimate_commute_switch` | `from_mode`, `to_mode`, `distance_km`, `days_per_week` | Yearly CO₂, PM2.5 and NOₓ change with assumptions (community scenarios live on the Simulator page) |
 
 **Loop:** at most 4 tool rounds. All `tool_result` blocks from one assistant turn go back in a single user message. Tool errors are returned with `is_error: true`. The response includes `tools_used` for the UI's "based on live data" chips.
 

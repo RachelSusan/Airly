@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, Query
 from app.api.deps import get_air_service, get_geocoding_service, rate_limit
 from app.engine.aqi import aqi_series
 from app.engine.facts import current_point
-from app.engine.risk import Intensity, Sensitivity, outdoor_guidance
+from app.engine.risk import Sensitivity, outdoor_guidance
 from app.engine.windows import Activity, TimeWindow, best_window
 from app.models.api import (
     AirResponse,
@@ -47,7 +47,7 @@ async def air(
     data, stale = await service.get_air_data(lat, lon)
     series = aqi_series(data.forecast)
     now = current_point(data, series)
-    guidance = outdoor_guidance(now.category, Sensitivity.STANDARD, Intensity.LIGHT)
+    guidance = outdoor_guidance(now.category, Sensitivity.STANDARD)
 
     return AirResponse(
         location=Location(lat=data.lat, lon=data.lon),
