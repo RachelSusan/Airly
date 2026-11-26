@@ -23,18 +23,18 @@
 
 ## Approach and logic
 
-BreatheWise follows one rule: **code does the numbers, Claude does the language.**
+BreatheWise follows one rule: **code does the numbers, Gemini does the language.**
 
 ```
 Live data (Open-Meteo) ──► Rule engine (AQI, risk, time windows) ──┐
-                           Impact engine (emission factors)       ├──► Claude ──► Plain-language advice
+                           Impact engine (emission factors)       ├──► Gemini ──► Plain-language advice
 User + family profile ─────────────────────────────────────────────┘
 ```
 
 1. **Data layer:** fetches hourly air quality and weather for the user's coordinates and caches it for a short time.
 2. **Rule engine** (plain code, unit-tested): calculates Indian NAQI from pollutant levels, works out per-member risk, and finds the safest time windows.
 3. **Impact engine** (plain code, unit-tested): calculates emission changes from documented emission factors.
-4. **Claude layer:** turns those verified facts into personalised plans, checklists and chat answers. In chat, Claude calls **tools** that run the engines, so every number comes from code, not from the model.
+4. **Gemini layer:** turns those verified facts into personalised plans, checklists and chat answers. In chat, Gemini calls **tools** that run the engines, so every number comes from code, not from the model.
 5. **Fallback:** if the AI service is unavailable, the rule engine still returns basic advice.
 
 ## How it works
@@ -51,11 +51,12 @@ User + family profile ───────────────────�
 - AQI follows India's **NAQI (CPCB)** categories, calculated from hourly concentrations. The official index uses 24-hour or 8-hour averages, so ours is a close estimate.
 - Emission factors and exposure-reduction figures are published averages. See [docs/impact_methodology.md](docs/impact_methodology.md).
 - Family profiles stay **in the user's browser**. The server keeps no personal data.
+- AI answers come from Google Gemini's free tier, where Google may use prompts to improve its products. BreatheWise sends only rounded location, age groups, conditions and an optional nickname: never email, phone numbers or addresses.
 - This is guidance, not medical advice.
 
 ## Tech stack
 
-Python 3.12+ · FastAPI · Pydantic · Anthropic Claude API (`claude-opus-5-5`) · Open-Meteo · HTML, CSS and JavaScript · pytest · GitHub Actions
+Python 3.12+ · FastAPI · Pydantic · Google Gemini API (`gemini-2.5-flash`, free tier) · Open-Meteo · HTML, CSS and JavaScript · pytest · GitHub Actions
 
 ## Run locally
 
@@ -63,7 +64,7 @@ Python 3.12+ · FastAPI · Pydantic · Anthropic Claude API (`claude-opus-5-5`) 
 python -m venv .venv
 .venv\Scripts\activate            # Windows  (macOS/Linux: source .venv/bin/activate)
 pip install -r requirements.txt
-copy .env.example .env            # then set ANTHROPIC_API_KEY
+copy .env.example .env            # then set GEMINI_API_KEY
 uvicorn app.main:app --reload
 ```
 
@@ -77,7 +78,7 @@ Open http://localhost:8000. Run the tests with `pytest`.
 | [Architecture](docs/architecture.md) | System design and folder structure |
 | [API](docs/api.md) | Endpoint contracts |
 | [Database](docs/database.md) | Data model and storage |
-| [AI prompts](docs/ai_prompts.md) | How Claude is used |
+| [AI prompts](docs/ai_prompts.md) | How Gemini is used |
 | [Impact methodology](docs/impact_methodology.md) | Formulas, factors, sources |
 | [Design system](docs/design_system.md) | UI tokens and components |
 | [Accessibility](docs/accessibility.md) | Inclusive design commitments |

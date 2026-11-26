@@ -1,63 +1,109 @@
+import httpx2
 import pytest
 
-from app.ai.client import AIUnavailableError, ClaudeClient, build_claude_client, text_of
+from app.ai.client import AIUnavailableError, GeminiClient, build_ai_client, text_of
 from app.ai.schemas import PLAN_SCHEMA, strict_schema
 from app.config import Settings
 from app.models.api import PlanContent
-from tests.api.conftest import FakeAPIError, FakeMessages, text_response
+from tests.api.conftest import FakeAPIError, FakeModels, text_response, tool_response
+
+SCHEMA = {"type": "object", "properties": {"a": {"type": "string"}}, "required": ["a"]}
 
 
-def _client(*responses: object) -> tuple[ClaudeClient, FakeMessages]:
-    messages = FakeMessages(*responses)
-    return ClaudeClient(messages, "claude-opus-5-5"), messages
+def _client(*responses: object) -> tuple[GeminiClient, FakeModels]:
+    models = FakeModels(*responses)
+    return GeminiClient(models, "gemini-test"), models
 
 
-async def test_create_sends_expected_parameters() -> None:
-    client, messages = _client(text_response("hi"))
-    await client.create(
-        system="S", messages=[{"role": "user", "content": "q"}], max_tokens=100, effort="low"
-    )
-    request = messages.requests[0]
-    assert request["model"] == "claude-opus-5-5"
-    assert request["system"][0]["cache_control"] == {"type": "ephemeral"}
-    assert request["betas"] == ["server-side-fallback-2026-07-01"]
-    assert request["fallbacks"] == "default"
-    assert "temperature" not in request
-    assert "thinking" not in request
-    assert "tools" not in request
-
-
-@pytest.mark.parametrize("stop_reason", ["refusal", "max_tokens"])
-async def test_unusable_stop_reasons_raise(stop_reason: str) -> None:
-    client, _ = _client(text_response("x", stop_reason=stop_reason))
-    with pytest.raises(AIUnavailableError):
-        await client.create(system="S", messages=[], max_tokens=10, effort="low")
-
-
-async def test_api_errors_are_mapped() -> None:
-    client, _ = _client(FakeAPIError())
-    with pytest.raises(AIUnavailableError):
-        await client.create(system="S", messages=[], max_tokens=10, effort="low")
+async def test_generate_json_sends_schema_and_parses() -> None:
+    client, models = _client(text_response('{"a": "hi"}'))
+    data = await client.generate_json(system="S", prompt="P", schema=SCHEMA, max_tokens=100)
+    assert data == {"a": "hi"}
+    request = models.requests[0]
+    assert request["model"] == "gemini-test"
+    assert request["contents"] == "P"
+    config = request["config"]
+    assert config.system_instruction == "S"
+    assert config.response_mime_type == "application/json"
+    assert config.response_json_schema == SCHEMA
+    assert config.max_output_tokens == 100
+    assert config.automatic_function_calling.disable is True
 
 
 @pytest.mark.parametrize("text", ["not json", "[1, 2]"])
-async def test_create_json_rejects_non_objects(text: str) -> None:
+async def test_generate_json_rejects_non_objects(text: str) -> None:
     client, _ = _client(text_response(text))
     with pytest.raises(AIUnavailableError):
-        await client.create_json(
-            system="S", messages=[], max_tokens=10, effort="low", schema={"type": "object"}
-        )
+        await client.generate_json(system="S", prompt="P", schema=SCHEMA, max_tokens=10)
 
 
-def test_text_of_ignores_non_text_blocks() -> None:
-    response = text_response("hello")
-    response.content.insert(0, type("Block", (), {"type": "thinking"})())
-    assert text_of(response) == "hello"
+@pytest.mark.parametrize("finish", ["SAFETY", "PROHIBITED_CONTENT", "MAX_TOKENS", "RECITATION"])
+async def test_unusable_finish_reasons_raise(finish: str) -> None:
+    client, _ = _client(text_response('{"a": "x"}', finish=finish))
+    with pytest.raises(AIUnavailableError):
+        await client.generate_json(system="S", prompt="P", schema=SCHEMA, max_tokens=10)
 
 
-def test_build_client_requires_key() -> None:
-    assert build_claude_client(Settings(anthropic_api_key=None)) is None
-    assert build_claude_client(Settings(anthropic_api_key="k")) is not None
+@pytest.mark.parametrize(
+    "error", [FakeAPIError(), httpx2.ConnectError("offline"), TimeoutError("slow")]
+)
+async def test_request_errors_are_mapped(error: Exception) -> None:
+    client, _ = _client(error)
+    with pytest.raises(AIUnavailableError):
+        await client.generate_json(system="S", prompt="P", schema=SCHEMA, max_tokens=10)
+
+
+async def test_no_candidates_means_blocked() -> None:
+    from types import SimpleNamespace
+
+    client, _ = _client(SimpleNamespace(candidates=[], function_calls=None))
+    with pytest.raises(AIUnavailableError, match="blocked"):
+        await client.generate_json(system="S", prompt="P", schema=SCHEMA, max_tokens=10)
+
+
+async def test_chat_runs_tools_and_maps_roles() -> None:
+    client, models = _client(
+        tool_response(("c1", "lookup", {"q": 1})),
+        text_response("Done."),
+    )
+    seen: list[tuple[str, dict]] = []
+
+    def run_tool(name: str, args: dict) -> dict:
+        seen.append((name, args))
+        return {"value": 42}
+
+    reply, used = await client.chat(
+        system="S",
+        messages=[("user", "hi"), ("assistant", "hello"), ("user", "look it up")],
+        tools=[{"name": "lookup", "description": "d", "parameters": {"type": "object"}}],
+        run_tool=run_tool,
+        max_rounds=3,
+        max_tokens=100,
+    )
+    assert (reply, used) == ("Done.", ["lookup"])
+    assert seen == [("lookup", {"q": 1})]
+    first = models.requests[0]["contents"]
+    assert [c.role for c in first] == ["user", "model", "user"]
+    second = models.requests[1]["contents"]
+    assert second[-1].parts[0].function_response.response == {"value": 42}
+
+
+def test_text_of_skips_thoughts_and_handles_empty() -> None:
+    response = text_response("answer")
+    from types import SimpleNamespace
+
+    response.candidates[0].content.parts.insert(
+        0, SimpleNamespace(text="thinking...", thought=True, function_call=None)
+    )
+    assert text_of(response) == "answer"
+    assert text_of(SimpleNamespace(candidates=[])) == ""
+
+
+def test_build_client_requires_real_key() -> None:
+    assert build_ai_client(Settings(gemini_api_key=None)) is None
+    assert build_ai_client(Settings(gemini_api_key="your-gemini-api-key-here")) is None
+    client = build_ai_client(Settings(gemini_api_key="k", gemini_model="gemini-x"))
+    assert client is not None and client.model == "gemini-x"
 
 
 def test_plan_schema_is_closed_and_fully_required() -> None:

@@ -7,7 +7,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from app.ai.assistant import answer
-from app.ai.client import ClaudeClient
+from app.ai.client import GeminiClient
 from app.api.deps import get_ai, get_air_service, rate_limit
 from app.engine.facts import build_facts
 from app.models.api import ChatRequest, ChatResponse
@@ -20,7 +20,7 @@ router = APIRouter(prefix="/api", tags=["chat"], dependencies=[Depends(rate_limi
 async def chat(
     body: ChatRequest,
     service: Annotated[AirQualityService, Depends(get_air_service)],
-    ai: Annotated[ClaudeClient | None, Depends(get_ai)],
+    ai: Annotated[GeminiClient | None, Depends(get_ai)],
 ) -> ChatResponse:
     """Answer a question about the air, grounded in live data for the user's location."""
     ctx = body.context

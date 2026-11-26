@@ -3,7 +3,7 @@ from collections.abc import Callable
 
 from fastapi.testclient import TestClient
 
-from tests.api.conftest import LOCATION, FakeMessages, text_response
+from tests.api.conftest import LOCATION, FakeModels, text_response
 
 MakeClient = Callable[..., TestClient]
 
@@ -36,9 +36,9 @@ def test_petrol_to_public_rules(make_client: MakeClient) -> None:
 
 def test_simulate_ai_explanation(make_client: MakeClient) -> None:
     reply = json.dumps({"explanation": "You save CO2.", "next_step": "Try it Monday."})
-    messages = FakeMessages(text_response(reply))
+    models = FakeModels(text_response(reply))
     body = {"scenario_id": "community_trees", "inputs": {"trees": 100, "years": 2}}
-    data = make_client(messages=messages).post("/api/simulate", json=body).json()
+    data = make_client(models=models).post("/api/simulate", json=body).json()
     assert data["source"] == "ai"
     assert data["explanation"] == "You save CO2."
     assert data["result"]["co2_kg"] == -4200.0
@@ -46,11 +46,9 @@ def test_simulate_ai_explanation(make_client: MakeClient) -> None:
 
 
 def test_simulate_ai_invalid_json_falls_back(make_client: MakeClient) -> None:
-    messages = FakeMessages(text_response("not json"))
+    models = FakeModels(text_response("not json"))
     body = {"scenario_id": "community_trees", "inputs": {"trees": 10}}
-    assert (
-        make_client(messages=messages).post("/api/simulate", json=body).json()["source"] == "rules"
-    )
+    assert make_client(models=models).post("/api/simulate", json=body).json()["source"] == "rules"
 
 
 def test_families_and_custom_switch(make_client: MakeClient) -> None:

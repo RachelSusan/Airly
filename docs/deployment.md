@@ -4,8 +4,8 @@
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `ANTHROPIC_API_KEY` | Yes (for AI features) | none | Claude API key. **Never commit.** Without it, the app runs in rules-only mode |
-| `CLAUDE_MODEL` | No | `claude-opus-5-5` | Model ID |
+| `GEMINI_API_KEY` | Yes (for AI features) | none | Gemini API key (free from Google AI Studio). **Never commit.** Without it, the app runs in rules-only mode |
+| `GEMINI_MODEL` | No | `gemini-2.5-flash` | Model ID |
 | `APP_ENV` | No | `development` | `development` or `production` (production turns off `/docs` and turns on HSTS) |
 | `LOG_LEVEL` | No | `INFO` | Logging level |
 | `AIR_CACHE_TTL_SECONDS` | No | `900` | Air-data cache TTL |
@@ -20,7 +20,7 @@
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -r requirements.txt -r requirements-dev.txt
-Copy-Item .env.example .env      # then edit .env and set ANTHROPIC_API_KEY
+Copy-Item .env.example .env      # then edit .env and set GEMINI_API_KEY
 uvicorn app.main:app --reload
 ```
 
@@ -33,7 +33,7 @@ Open http://localhost:8000 (the API docs are at http://localhost:8000/docs in de
 ### Deploy with the Blueprint
 1. Sign in at https://dashboard.render.com with GitHub.
 2. **New → Blueprint**, pick the `BreatheWise` repository (branch `main`), then **Apply**.
-3. When asked for `ANTHROPIC_API_KEY`, paste the key, or leave it empty to run in rules-only mode. It can be added later under **Environment**.
+3. When asked for `GEMINI_API_KEY`, paste the key, or leave it empty to run in rules-only mode. It can be added later under **Environment**.
 4. Wait for the build, then open the `https://breathewise-xxxx.onrender.com` URL and check `/api/health`.
 
 What `render.yaml` sets:

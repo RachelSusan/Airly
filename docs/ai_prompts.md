@@ -1,10 +1,10 @@
 # AI Design and Prompts: BreatheWise
 
-How BreatheWise uses Claude. (Rules for AI *coding* assistants are in `/Agents.md`.)
+How BreatheWise uses Gemini. (Rules for AI *coding* assistants are in `/Agents.md`.)
 
 ## 1. Principles
 
-1. **Code does the numbers, Claude does the language.** Claude never makes up AQI values, times or emission figures. It gets them from the facts object or from tools.
+1. **Code does the numbers, Gemini does the language.** Gemini never makes up AQI values, times or emission figures. It gets them from the facts object or from tools.
 2. **Grounded and explainable.** Every recommendation says *why* (data) and *what it changes* (impact).
 3. **Simple language.** Short sentences, everyday words, about a Grade 6–8 reading level.
 4. **Safe.** Not medical advice; stays on topic; no claims of local AQI changes.
@@ -14,23 +14,21 @@ How BreatheWise uses Claude. (Rules for AI *coding* assistants are in `/Agents.m
 
 | Setting | Value | Notes |
 |---|---|---|
-| SDK | `anthropic` (official Python SDK), async client | Server-side only |
-| Model | `claude-opus-5-5` | One model for all features (one prompt-cache namespace) |
-| Thinking | Adaptive (default; parameter left out) | Thinking can't be turned off on this model, so depth is set with effort |
-| Effort | Chat `low` · Plan `medium` · Simulator explanation `low` | Low effort for faster replies |
-| `max_tokens` | Chat 2,000 · Plan 6,000 · Simulator 1,500 | Bounded for cost and abuse control |
-| Structured outputs | `output_config.format` (JSON schema) for plan and simulator | Validated again with Pydantic |
-| Tools | Chat only; `tool_choice: auto`, `strict: true` on every tool | Forced tool choice isn't supported on this model |
-| Refusal fallback | Beta `server-side-fallback-2026-07-01`, `fallbacks: "default"` | Plus our own rules fallback |
-| Prompt caching | `cache_control` on the stable system prompt and tool list | Volatile data (facts, time) goes in messages, after the cache breakpoint |
-| Sampling params | Not sent (`temperature`, `top_p` and `top_k` are rejected) | |
-| Timeout and retries | 30 s, 2 retries (SDK defaults handle 429/5xx) | |
+| SDK | `google-genai` (official Google Gen AI SDK), async client (`client.aio.models`) | Server-side only |
+| Model | `gemini-2.5-flash` (set with `GEMINI_MODEL`) | Free tier in Google AI Studio |
+| Structured outputs | `response_mime_type="application/json"` + `response_json_schema` for plan and simulator | Validated again with Pydantic |
+| Tools | Chat only; `function_declarations` with JSON Schema parameters | Our code runs the tool loop (`automatic_function_calling` disabled) |
+| Output limit | Chat 4,096 · Plan 12,000 · Simulator 4,096 tokens | Room for the model's internal reasoning; bounded for abuse control |
+| Timeout | 30 s per request | |
+| Blocked or cut-off answers | `finish_reason` SAFETY, PROHIBITED_CONTENT, BLOCKLIST, SPII, RECITATION, MALFORMED_FUNCTION_CALL or MAX_TOKENS | Treated as unavailable: the rules fallback answers instead |
 
-Always check `stop_reason` before reading content: `end_turn`, `tool_use`, `max_tokens` and `refusal` are each handled.
+Every failure (network, quota/rate limit, blocked or truncated answer, invalid JSON, too many tool rounds) raises `AIUnavailableError` in `app/ai/client.py`, and the caller switches to the rules fallback.
+
+**Free-tier data note:** on Google's free tier, prompts and responses may be used by Google to improve its products. BreatheWise only sends what an answer needs: rounded location (about 1 km), age groups, health conditions and an optional nickname. It never sends email, phone numbers or exact addresses. The README states this for users.
 
 ## 3. Feature: Daily Plan (`POST /api/plan`)
 
-**Input to Claude:** a JSON **facts object** made by the engine (current AQI, hourly forecast summary, best windows per activity, per-member risk and alerts, ventilation decision, rule checklist items, commute options with computed impact).
+**Input to Gemini:** a JSON **facts object** made by the engine (current AQI, hourly forecast summary, best windows per activity, per-member risk and alerts, ventilation decision, rule checklist items, commute options with computed impact).
 
 **System prompt (draft):**
 ```
@@ -51,7 +49,7 @@ Rules:
 Return JSON matching the provided schema.
 ```
 
-**Output schema (summary):** `summary`, `routine[] {activity, start, end, advice, why, impact}`, `commute {recommended_departure, why, alternative_mode, alternative_impact} | null`, `school[] {slot, advice, alternative}`, `indoor_tips[]` and `sustainable_choices[] {tip, why, impact}`, `members[] {member_id, risk_level, alerts[], checklist[] {id, text, reason}}`. The schema is generated from the `PlanContent` Pydantic model by `strict_schema()` in `app/ai/schemas.py`, so the API model and Claude's schema can never drift apart.
+**Output schema (summary):** `summary`, `routine[] {activity, start, end, advice, why, impact}`, `commute {recommended_departure, why, alternative_mode, alternative_impact} | null`, `school[] {slot, advice, alternative}`, `indoor_tips[]` and `sustainable_choices[] {tip, why, impact}`, `members[] {member_id, risk_level, alerts[], checklist[] {id, text, reason}}`. The schema is generated from the `PlanContent` Pydantic model by `strict_schema()` in `app/ai/schemas.py`, so the API model and Gemini's schema can never drift apart.
 
 **Post-processing:** Pydantic validation. Member IDs must match the request, times must exist in the forecast, and `advice` must be in the allowed set. On any failure, use `fallback.plan(facts)`.
 
@@ -87,13 +85,13 @@ How to answer:
 | `check_ventilation` | none | Open or keep closed, best airing window, reason |
 | `estimate_commute_switch` | `from_mode`, `to_mode`, `distance_km`, `days_per_week` | Yearly CO₂, PM2.5 and NOₓ change with assumptions (community scenarios live on the Simulator page) |
 
-**Loop:** at most 4 tool rounds. All `tool_result` blocks from one assistant turn go back in a single user message. Tool errors are returned with `is_error: true`. The response includes `tools_used` for the UI's "based on live data" chips.
+**Loop:** at most 4 tool rounds. All function responses from one model turn go back together in one turn. Tool errors are returned to the model as `{"error": ...}` data. The response includes `tools_used` for the UI's "based on live data" chips.
 
 **Fallback:** the intent is classified by keywords (jog, run, exercise, play, kids, children, window, ventilate, mask, purifier, commute) and answered with an engine-backed template.
 
 ## 5. Feature: What-If Simulator explanation (`POST /api/simulate`)
 
-**Input to Claude:** the computed `ScenarioResult` (numbers, period, assumptions).
+**Input to Gemini:** the computed `ScenarioResult` (numbers, period, assumptions).
 
 **System prompt (draft):**
 ```
@@ -111,9 +109,9 @@ State clearly that these are estimated emission changes, not a prediction of loc
 
 - User text only appears in `user` messages, never in system prompts.
 - The facts object and tool results are produced by the server, not copied from user text.
-- Tool inputs use enums and bounds (`strict: true` and Pydantic).
+- Tool inputs use enums in their JSON Schema and are validated again with Pydantic before running.
 - Output schemas are validated; free-text output is rendered as text only (no HTML).
-- Refusal: `stop_reason == "refusal"` is handled with a polite message and the rules fallback.
+- Safety blocks (`finish_reason` SAFETY and similar) are handled with the rules fallback.
 
 ## 7. Prompt versioning
 

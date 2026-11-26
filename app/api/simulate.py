@@ -6,7 +6,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Body, Depends
 
-from app.ai.client import ClaudeClient
+from app.ai.client import GeminiClient
 from app.ai.simulator import explain
 from app.api.deps import get_ai, get_air_service, rate_limit
 from app.engine.impact import (
@@ -96,7 +96,7 @@ async def scenarios() -> ScenariosResponse:
 async def simulate(
     body: Annotated[SimulateRequest, Body()],
     service: Annotated[AirQualityService, Depends(get_air_service)],
-    ai: Annotated[ClaudeClient | None, Depends(get_ai)],
+    ai: Annotated[GeminiClient | None, Depends(get_ai)],
 ) -> SimulateResponse:
     """Compute a scenario's emission changes and explain them in plain language."""
     result = await _compute(body, service)

@@ -177,7 +177,7 @@ class MemberPlan(BaseModel):
 
 
 class PlanContent(BaseModel):
-    """The plan body. Also the JSON schema Claude must follow."""
+    """The plan body. Also the JSON schema the AI model must follow."""
 
     summary: str
     routine: list[RoutineItem]

@@ -6,7 +6,7 @@ from collections.abc import Awaitable, Callable
 
 from fastapi import Request
 
-from app.ai.client import ClaudeClient
+from app.ai.client import GeminiClient
 from app.api.errors import AppError
 from app.config import Settings
 from app.security.rate_limit import SlidingWindowLimiter
@@ -33,7 +33,7 @@ def get_grid_service(request: Request) -> AirGridService:
     return request.app.state.grid_service
 
 
-def get_ai(request: Request) -> ClaudeClient | None:
+def get_ai(request: Request) -> GeminiClient | None:
     return request.app.state.ai
 
 

@@ -83,7 +83,7 @@
 | W3 | Shows estimated changes in CO₂, PM2.5 and NOₓ emissions, and in personal exposure | Must |
 | W4 | Lists the assumptions and sources behind every result | Must |
 | W5 | Never claims a change in local AQI | Must |
-| W6 | Claude writes a plain-language explanation of the computed result | Must |
+| W6 | Gemini writes a plain-language explanation of the computed result | Must |
 
 ## 6. User stories
 
@@ -108,7 +108,7 @@
 ## 8. Constraints
 
 - At most 3 submissions, a public GitHub repo under 10 MB, a single branch.
-- GenAI is mandatory, using the Anthropic Claude API.
+- GenAI is mandatory, using the Google Gemini API (free tier).
 - A demo video is mandatory (unlisted YouTube or shared Drive link).
 - No GCP credits are provided.
 

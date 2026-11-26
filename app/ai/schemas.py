@@ -1,4 +1,4 @@
-"""JSON schemas for Claude's structured outputs, derived from Pydantic models."""
+"""JSON schemas for the model's structured (JSON) outputs, derived from Pydantic models."""
 
 from __future__ import annotations
 

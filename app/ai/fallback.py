@@ -1,4 +1,4 @@
-"""Rule-based responses used when Claude is unavailable. Same facts, plainer wording."""
+"""Rule-based responses used when the AI model is unavailable. Same facts, plainer wording."""
 
 from __future__ import annotations
 

@@ -8,7 +8,7 @@ from tests.api.conftest import (
     HOUSEHOLD,
     LOCATION,
     FakeAPIError,
-    FakeMessages,
+    FakeModels,
     text_response,
 )
 
@@ -66,30 +66,31 @@ def test_plan_rules_mode_without_ai(make_client: MakeClient) -> None:
 
 
 def test_plan_uses_ai_when_valid(make_client: MakeClient) -> None:
-    messages = FakeMessages(text_response(_ai_plan(["m_1", "m_2"])))
-    response = make_client(messages=messages).post("/api/plan", json=BODY)
+    models = FakeModels(text_response(_ai_plan(["m_1", "m_2"])))
+    response = make_client(models=models).post("/api/plan", json=BODY)
     data = response.json()
     assert data["source"] == "ai"
     assert data["summary"] == "Very Poor air this morning."
-    request = messages.requests[0]
-    assert request["output_config"]["effort"] == "medium"
-    assert request["output_config"]["format"]["type"] == "json_schema"
-    assert "FACTS" in request["messages"][0]["content"]
+    request = models.requests[0]
+    config = request["config"]
+    assert config.response_mime_type == "application/json"
+    assert "members" in config.response_json_schema["properties"]
+    assert request["contents"].startswith("FACTS")
 
 
 def test_plan_falls_back_when_ai_invents_members(make_client: MakeClient) -> None:
-    messages = FakeMessages(text_response(_ai_plan(["m_1", "stranger"])))
-    assert make_client(messages=messages).post("/api/plan", json=BODY).json()["source"] == "rules"
+    models = FakeModels(text_response(_ai_plan(["m_1", "stranger"])))
+    assert make_client(models=models).post("/api/plan", json=BODY).json()["source"] == "rules"
 
 
 def test_plan_falls_back_on_api_error(make_client: MakeClient) -> None:
-    messages = FakeMessages(FakeAPIError())
-    assert make_client(messages=messages).post("/api/plan", json=BODY).json()["source"] == "rules"
+    models = FakeModels(FakeAPIError())
+    assert make_client(models=models).post("/api/plan", json=BODY).json()["source"] == "rules"
 
 
-def test_plan_falls_back_on_refusal(make_client: MakeClient) -> None:
-    messages = FakeMessages(text_response("", stop_reason="refusal"))
-    assert make_client(messages=messages).post("/api/plan", json=BODY).json()["source"] == "rules"
+def test_plan_falls_back_on_safety_block(make_client: MakeClient) -> None:
+    models = FakeModels(text_response("", finish="SAFETY"))
+    assert make_client(models=models).post("/api/plan", json=BODY).json()["source"] == "rules"
 
 
 def test_plan_gives_each_member_their_own_travel_and_school(make_client: MakeClient) -> None:

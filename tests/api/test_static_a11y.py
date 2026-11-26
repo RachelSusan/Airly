@@ -68,7 +68,7 @@ def test_frontend_never_uses_inner_html() -> None:
 
 
 def test_index_served_with_csp() -> None:
-    with TestClient(create_app(Settings(anthropic_api_key=None))) as client:
+    with TestClient(create_app(Settings(gemini_api_key=None))) as client:
         response = client.get("/")
     assert response.status_code == 200
     assert "Content-Security-Policy" in response.headers

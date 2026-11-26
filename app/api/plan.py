@@ -7,7 +7,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from app.ai.client import ClaudeClient
+from app.ai.client import GeminiClient
 from app.ai.planner import generate_plan
 from app.api.deps import get_ai, get_air_service, rate_limit
 from app.engine.facts import build_facts
@@ -21,7 +21,7 @@ router = APIRouter(prefix="/api", tags=["plan"], dependencies=[Depends(rate_limi
 async def plan(
     body: PlanRequest,
     service: Annotated[AirQualityService, Depends(get_air_service)],
-    ai: Annotated[ClaudeClient | None, Depends(get_ai)],
+    ai: Annotated[GeminiClient | None, Depends(get_ai)],
 ) -> PlanResponse:
     """Build today's plan for the household from live data."""
     data, _ = await service.get_air_data(body.location.lat, body.location.lon)

@@ -22,7 +22,7 @@ Goal: code that a judge can read in five minutes and understand. **Readable, con
 | Naming | `snake_case` functions and variables, `PascalCase` classes, `UPPER_SNAKE` constants, `_private` helpers |
 | Imports | Standard library, then third-party, then local (ruff `I` rules); absolute imports from `app.` |
 | Errors | Raise specific exceptions; catch narrowly; never use bare `except:` |
-| Async | Async for I/O (httpx, Anthropic); engine functions are **sync and pure** |
+| Async | Async for I/O (httpx, Gemini); engine functions are **sync and pure** |
 | Models | Pydantic v2 with `model_config = ConfigDict(extra="forbid", frozen=True)` where it makes sense |
 | Logging | `logging` module, structured key=value; no personal data |
 

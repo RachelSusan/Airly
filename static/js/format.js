@@ -113,7 +113,7 @@ export function sourceBadge(source) {
   return h(
     "span",
     { class: "badge badge--neutral" },
-    source === "ai" ? "Written by Claude from live data" : "Rule-based backup (AI unavailable)",
+    source === "ai" ? "Written by Gemini AI from live data" : "Rule-based backup (AI unavailable)",
   );
 }
 

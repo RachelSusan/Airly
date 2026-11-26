@@ -1,4 +1,4 @@
-"""Daily plan: Claude phrases the verified facts; rules fallback renders them directly."""
+"""Daily plan: Gemini phrases the verified facts; rules fallback renders them directly."""
 
 from __future__ import annotations
 
@@ -9,30 +9,29 @@ from typing import Literal
 from pydantic import ValidationError
 
 from app.ai import fallback
-from app.ai.client import AIUnavailableError, ClaudeClient
+from app.ai.client import AIUnavailableError, GeminiClient
 from app.ai.prompts import PLANNER_SYSTEM
 from app.ai.schemas import PLAN_SCHEMA
 from app.models.api import PlanContent
 
 logger = logging.getLogger(__name__)
 
-PLAN_MAX_TOKENS = 6000
+PLAN_MAX_TOKENS = 12_000
 
 Source = Literal["ai", "rules"]
 
 
 async def generate_plan(
-    facts: dict[str, object], ai: ClaudeClient | None
+    facts: dict[str, object], ai: GeminiClient | None
 ) -> tuple[PlanContent, Source]:
-    """Return the plan and whether it came from Claude or the rules."""
+    """Return the plan and whether it came from the AI model or the rules."""
     if ai is not None:
         try:
-            data = await ai.create_json(
+            data = await ai.generate_json(
                 system=PLANNER_SYSTEM,
-                messages=[{"role": "user", "content": "FACTS:\n" + json.dumps(facts)}],
-                max_tokens=PLAN_MAX_TOKENS,
-                effort="medium",
+                prompt="FACTS:\n" + json.dumps(facts),
                 schema=PLAN_SCHEMA,
+                max_tokens=PLAN_MAX_TOKENS,
             )
             plan = PlanContent.model_validate(data)
             _check_members(plan, facts)
@@ -43,7 +42,7 @@ async def generate_plan(
 
 
 def _check_members(plan: PlanContent, facts: dict[str, object]) -> None:
-    """Claude must return exactly the household's members (no invented people)."""
+    """The model must return exactly the household's members (no invented people)."""
     members = facts.get("members")
     expected = {m["member_id"] for m in members} if isinstance(members, list) else set()
     if {m.member_id for m in plan.members} != expected:

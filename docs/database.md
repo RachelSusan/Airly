@@ -94,7 +94,7 @@ Defined as Pydantic models in `app/models/`.
 ## 5. Data retention and privacy
 
 - The server **persists nothing**. Logs hold no coordinates beyond 2 decimals, no names, no conditions, and no chat text.
-- Data sent to the Anthropic API holds only what the answer needs: rounded location, age groups and conditions, and nicknames only if the user typed them. No email, phone or exact address.
+- Data sent to the Gemini API holds only what the answer needs: rounded location, age groups and conditions, and nicknames only if the user typed them. No email, phone or exact address.
 
 ## 6. Future (out of scope)
 

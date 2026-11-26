@@ -1,4 +1,4 @@
-"""Read-only tools Claude can call in chat. Every result comes from the engine."""
+"""Read-only tools the AI model can call in chat. Every result comes from the engine."""
 
 from __future__ import annotations
 
@@ -20,15 +20,13 @@ TOOLS: list[dict[str, Any]] = [
         "name": "get_current_conditions",
         "description": "Current AQI, category, dominant pollutant and weather at the user's "
         "location, plus the cleanest and worst hours in the next 24 hours.",
-        "strict": True,
-        "input_schema": _NO_INPUT,
+        "parameters": _NO_INPUT,
     },
     {
         "name": "get_forecast_windows",
         "description": "Best time window in the next 24 hours for an activity, with advice "
         "for the most sensitive household member.",
-        "strict": True,
-        "input_schema": {
+        "parameters": {
             "type": "object",
             "properties": {
                 "activity": {"type": "string", "enum": [a.value for a in Activity]},
@@ -41,21 +39,18 @@ TOOLS: list[dict[str, Any]] = [
     {
         "name": "assess_family_risk",
         "description": "Risk level, outdoor advice, alerts and checklist for each family member.",
-        "strict": True,
-        "input_schema": _NO_INPUT,
+        "parameters": _NO_INPUT,
     },
     {
         "name": "check_ventilation",
         "description": "Whether to open windows now, the best airing time, and why.",
-        "strict": True,
-        "input_schema": _NO_INPUT,
+        "parameters": _NO_INPUT,
     },
     {
         "name": "estimate_commute_switch",
         "description": "Estimated yearly change in CO2, PM2.5 and NOx emissions from switching "
         "a regular commute between travel modes. Distance is one way.",
-        "strict": True,
-        "input_schema": {
+        "parameters": {
             "type": "object",
             "properties": {
                 "from_mode": {"type": "string", "enum": [m.value for m in Mode]},

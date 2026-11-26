@@ -8,7 +8,7 @@ from typing import Literal
 from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-PLACEHOLDER_API_KEY = "your-anthropic-api-key-here"  # value shipped in .env.example
+PLACEHOLDER_API_KEY = "your-gemini-api-key-here"  # value shipped in .env.example
 
 
 class Settings(BaseSettings):
@@ -16,8 +16,8 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
-    anthropic_api_key: SecretStr | None = None
-    claude_model: str = "claude-opus-5-5"
+    gemini_api_key: SecretStr | None = None
+    gemini_model: str = "gemini-2.5-flash"
     app_env: Literal["development", "production"] = "development"
     log_level: str = "INFO"
     air_cache_ttl_seconds: int = Field(default=900, ge=60, le=3600)
@@ -30,10 +30,10 @@ class Settings(BaseSettings):
 
     @property
     def ai_enabled(self) -> bool:
-        """True when a real Anthropic API key is configured (not blank, not the placeholder)."""
-        if self.anthropic_api_key is None:
+        """True when a real Gemini API key is configured (not blank, not the placeholder)."""
+        if self.gemini_api_key is None:
             return False
-        key = self.anthropic_api_key.get_secret_value().strip()
+        key = self.gemini_api_key.get_secret_value().strip()
         return bool(key) and key != PLACEHOLDER_API_KEY
 
 

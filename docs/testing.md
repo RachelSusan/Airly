@@ -8,7 +8,7 @@ Goal: **prove the logic is correct and the app is safe**, quickly and repeatably
 |---|---|---|---|
 | **Unit: engine** | AQI, risk, windows, checklist, ventilation, impact | `pytest`, parametrised cases | ≥ 95% coverage |
 | **Unit: services** | Open-Meteo parsing, cache TTL and stale behaviour, geocoding | `pytest`, `respx` (httpx mocking) | ≥ 85% |
-| **Unit: AI layer** | Tool dispatch, tool input validation, schema validation, fallback selection, refusal handling | `pytest`, fake Anthropic client | ≥ 85% |
+| **Unit: AI layer** | Tool dispatch, tool input validation, schema validation, fallback selection, refusal handling | `pytest`, fake Geminiic client | ≥ 85% |
 | **API** | Every endpoint: happy path, validation errors, rate limit, upstream failure, AI failure leading to fallback | FastAPI `TestClient` | All endpoints |
 | **Security** | Headers present, unknown fields rejected, oversized body rejected, no secrets in responses | `TestClient` | Must pass |
 | **Accessibility (static)** | `index.html`: `lang`, landmarks, labels, alt or `aria-hidden` on SVGs, skip link | Python HTML parser | Must pass |
@@ -18,8 +18,8 @@ Goal: **prove the logic is correct and the app is safe**, quickly and repeatably
 
 ## 2. Rules
 
-- **No real network calls.** HTTP is mocked with `respx`; Claude is replaced by a fake client fixture.
-- **No real API key needed:** tests set `ANTHROPIC_API_KEY=test-key`.
+- **No real network calls.** HTTP is mocked with `respx`; Gemini is replaced by a fake client fixture.
+- **No real API key needed:** tests set `GEMINI_API_KEY=test-key`.
 - Tests are deterministic: fixed clock (`freezegun` or injected `now`) and fixed fixtures.
 - Fixtures live in `tests/fixtures/` (sample Open-Meteo JSON, at most a few KB each).
 

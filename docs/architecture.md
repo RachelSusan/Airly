@@ -25,7 +25,7 @@ BreatheWise is a single **FastAPI** service. It serves a static, framework-free 
 └───────┬────────┘   │ • impact.py        │   │ • fallback.py      │
         │            └────────────────────┘   └────────┬───────────┘
         ▼                                              ▼
-  Open-Meteo APIs                              Anthropic Claude API
+  Open-Meteo APIs                              Google Gemini API
 ```
 
 **Dependency rule:** `api → services, engine, ai`; `ai → engine, services`; `engine → models only` (pure functions, no I/O). This keeps the engine fully unit-testable.
@@ -58,7 +58,7 @@ BreatheWise/
 │   │   ├── exposure.py      # Inhaled PM2.5 dose + exposure change
 │   │   └── impact.py        # Emission factors + what-if calculations
 │   ├── ai/
-│   │   ├── client.py        # Anthropic SDK wrapper (timeouts, retries, errors)
+│   │   ├── client.py        # Google Gen AI SDK wrapper (timeouts, errors, tool loop)
 │   │   ├── prompts.py       # System prompts (stable → cacheable)
 │   │   ├── tools.py         # Tool definitions + dispatch to engine
 │   │   ├── schemas.py       # JSON schemas for structured outputs
@@ -94,21 +94,21 @@ BreatheWise/
 ### 3.2 Daily plan: `POST /api/plan`
 1. Validate the body: location, family members, lifestyle (commute mode, distance, school hours).
 2. Get air data (cached), then let the engine work out per-member risk, windows, checklist and ventilation advice. This produces a **facts object**.
-3. Send the facts object to Claude with the planner system prompt and a **structured output schema**.
-4. Validate Claude's JSON against the schema, then return it.
+3. Send the facts object to Gemini with the planner system prompt and a **structured output schema**.
+4. Validate Gemini's JSON against the schema, then return it.
 5. On any AI error, return `fallback.plan(facts)` with `"source": "rules"`.
 
 ### 3.3 Assistant chat: `POST /api/chat`
 1. Validate the message history (max turns and length) and the context (location, members).
-2. Call Claude with the assistant system prompt and **tools**: `get_current_conditions`, `get_forecast_windows`, `assess_family_risk`, `check_ventilation`, `simulate_scenario`.
-3. Run the tool loop: Claude asks for a tool, the server runs the engine function, and the result goes back to Claude. The loop is capped at 4 iterations.
+2. Call Gemini with the assistant system prompt and **tools**: `get_current_conditions`, `get_forecast_windows`, `assess_family_risk`, `check_ventilation`, `simulate_scenario`.
+3. Run the tool loop: Gemini asks for a tool, the server runs the engine function, and the result goes back to Gemini. The loop is capped at 4 iterations.
 4. Return the final text and a list of tools used (shown as "based on live data" chips).
 5. On error, `fallback.chat(intent, facts)` gives keyword-based answers for the common questions.
 
 ### 3.4 Simulator: `POST /api/simulate`
 1. Validate the scenario ID and its numeric inputs (with bounded ranges).
 2. `engine.impact` calculates the emission changes, with an assumptions list. This is deterministic.
-3. Claude writes a short plain-language explanation of **the computed numbers only**.
+3. Gemini writes a short plain-language explanation of **the computed numbers only**.
 4. Return the numbers, assumptions and explanation. On AI failure, return a template explanation.
 
 ## 4. Key design decisions
@@ -116,7 +116,7 @@ BreatheWise/
 | Decision | Why |
 |---|---|
 | Engine is pure, with no I/O | Deterministic, testable, and stops the AI from making up numbers |
-| Claude reaches data only through tools | Answers are grounded in live data, and the tool calls show the reasoning |
+| Gemini reaches data only through tools | Answers are grounded in live data, and the tool calls show the reasoning |
 | Structured outputs for plan and simulator | The UI renders fields directly, with no fragile text parsing |
 | No server database | No personal data on the server; simpler and more secure (see `database.md`) |
 | Static frontend with no build | Small repo, fast load, few dependencies |

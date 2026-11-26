@@ -12,7 +12,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from app import __version__
-from app.ai.client import build_claude_client
+from app.ai.client import build_ai_client
 from app.api import air, chat, health, plan, simulate
 from app.api.deps import build_limiters
 from app.api.errors import register_error_handlers
@@ -68,7 +68,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     http, TTLCache[list[Place]](ttl=GEO_CACHE_SECONDS, max_entries=1000)
                 )
             if not hasattr(state, "ai"):
-                state.ai = build_claude_client(settings)
+                state.ai = build_ai_client(settings)
             logger.info("startup ai_enabled=%s", state.ai is not None)
             yield
 

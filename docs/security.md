@@ -6,7 +6,7 @@ Security goal: **safe and responsible implementation.** Protect secrets, protect
 
 | Asset | Threat | Control |
 |---|---|---|
-| Anthropic API key | Leak via repo, logs or the frontend | Server-side only, `.env` git-ignored, secret scanning |
+| Gemini API key | Leak via repo, logs or the frontend | Server-side only, `.env` git-ignored, secret scanning |
 | API budget | Abuse, scripted flooding | Per-IP rate limits, input size caps, AI loop caps |
 | User health data | Exposure on the server or in logs | No server storage; redacted logging; minimal data to the AI |
 | AI behaviour | Prompt injection, made-up figures | Tool-grounded numbers, separate instructions, output schema validation |
@@ -15,12 +15,12 @@ Security goal: **safe and responsible implementation.** Protect secrets, protect
 
 ## 2. Secrets management
 
-- `ANTHROPIC_API_KEY` is read **only** from the environment (`app/config.py`, pydantic-settings, `SecretStr`).
+- `GEMINI_API_KEY` is read **only** from the environment (`app/config.py`, pydantic-settings, `SecretStr`).
 - `.env` is in `.gitignore`. `.env.example` holds placeholder values only.
-- The key never goes to the browser. All Claude calls are server-side.
+- The key never goes to the browser. All Gemini calls are server-side.
 - The key is never logged. `SecretStr` hides it in reprs.
 - Before each push: `git diff --cached` review, and GitHub secret scanning is on (public repo).
-- If a key leaks: revoke it in the Anthropic Console immediately, then rotate.
+- If a key leaks: delete it in Google AI Studio (API keys) immediately, then rotate.
 
 ## 3. Input validation
 
@@ -37,7 +37,7 @@ Security goal: **safe and responsible implementation.** Protect secrets, protect
 
 - In-memory sliding-window limiter per client IP (limits in `api.md`). Returns `429` with `Retry-After`.
 - The AI tool loop is capped at **4 iterations** per chat request; `max_tokens` is bounded.
-- Timeouts: Open-Meteo 8 s; Anthropic 30 s; overall request 45 s.
+- Timeouts: Open-Meteo 8 s; Gemini 30 s; overall request 45 s.
 
 ## 5. HTTP security headers
 
@@ -72,7 +72,7 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains   (production, HT
 ## 7. AI safety and prompt-injection defence
 
 - **Separation:** system prompts hold the instructions. User text only goes into `user` messages, never into the system prompt.
-- **Grounding:** Claude gets numbers only through tools that run the deterministic engine. The system prompt tells it never to state figures it didn't get from a tool or the facts object.
+- **Grounding:** Gemini gets numbers only through tools that run the deterministic engine. The system prompt tells it never to state figures it didn't get from a tool or the facts object.
 - **Tool safety:** tool inputs are validated against strict JSON schemas (`strict: true`) and then validated again in Python before the engine runs. Tools are **read-only and side-effect free**.
 - **Output validation:** structured outputs (plan, simulator) are parsed and validated with Pydantic. On failure, the rules fallback is used.
 - **Scope guard:** the assistant stays on air quality, health precautions and emissions, and politely redirects anything off-topic.
@@ -83,14 +83,14 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains   (production, HT
 
 - No accounts, no cookies, no tracking.
 - Profiles live in `localStorage`; the user can clear them with one button.
-- Only the minimum data goes to Claude: rounded coordinates, age groups, conditions and an optional nickname.
+- Only the minimum data goes to Gemini: rounded coordinates, age groups, conditions and an optional nickname.
 - Logs record method, path, status and latency. **No bodies, coordinates or chat text.**
 
 ## 9. Dependencies and supply chain
 
 - Pinned versions in `requirements.txt`.
 - `pip-audit` runs in CI. Dependabot alerts are on in GitHub.
-- Minimal dependency set: FastAPI, Uvicorn, Pydantic, pydantic-settings, httpx and anthropic.
+- Minimal dependency set: FastAPI, Uvicorn, Pydantic, pydantic-settings, httpx and google-genai.
 
 ## 10. Error handling
 

@@ -22,5 +22,7 @@ services:
         value: INFO
       # Secret: set it in the Render dashboard, never in this file.
       # Leave empty to run in rules-only mode.
-      - key: ANTHROPIC_API_KEY
+      - key: GEMINI_API_KEY
         sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash

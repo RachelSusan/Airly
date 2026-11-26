@@ -1,4 +1,4 @@
-"""Fakes for API tests: no network, no real Claude calls."""
+"""Fakes for API tests: no network, no real Gemini calls."""
 
 from __future__ import annotations
 
@@ -7,11 +7,12 @@ from collections.abc import Callable, Iterator
 from types import SimpleNamespace
 from typing import Any
 
-import anthropic
 import pytest
 from fastapi.testclient import TestClient
+from google.genai import errors as genai_errors
+from google.genai import types
 
-from app.ai.client import ClaudeClient
+from app.ai.client import GeminiClient
 from app.config import Settings
 from app.main import create_app
 from app.models.air import AirData, GridPoint, Place, Pollutants
@@ -66,35 +67,51 @@ DEFAULT_GRID = [
 ]
 
 
-class FakeAPIError(anthropic.APIError):
-    def __init__(self) -> None:  # skip SDK constructor (needs a real request)
+class FakeAPIError(genai_errors.APIError):
+    def __init__(self) -> None:  # skip SDK constructor (needs a real response)
         Exception.__init__(self, "boom")
 
 
-def text_response(text: str, stop_reason: str = "end_turn") -> SimpleNamespace:
+def _candidate(parts: list[Any], finish: str) -> SimpleNamespace:
     return SimpleNamespace(
-        content=[SimpleNamespace(type="text", text=text)], stop_reason=stop_reason
+        content=SimpleNamespace(role="model", parts=parts),
+        finish_reason=types.FinishReason(finish),
     )
 
 
+def text_response(text: str, finish: str = "STOP") -> SimpleNamespace:
+    """A Gemini-shaped response with one text part."""
+    part = SimpleNamespace(text=text, thought=None, function_call=None)
+    return SimpleNamespace(candidates=[_candidate([part], finish)], function_calls=None)
+
+
 def tool_response(*calls: tuple[str, str, dict[str, Any]]) -> SimpleNamespace:
-    blocks = [SimpleNamespace(type="tool_use", id=i, name=n, input=a) for i, n, a in calls]
-    return SimpleNamespace(content=blocks, stop_reason="tool_use")
+    """A Gemini-shaped response asking to call tools: ``(id, name, args)`` each."""
+    fcs = [SimpleNamespace(id=i, name=n, args=a) for i, n, a in calls]
+    parts = [SimpleNamespace(text=None, thought=None, function_call=fc) for fc in fcs]
+    return SimpleNamespace(candidates=[_candidate(parts, "STOP")], function_calls=fcs)
 
 
-class FakeMessages:
-    """Returns queued responses (or raises queued exceptions) and records requests."""
+class FakeModels:
+    """Stands in for ``genai.Client().aio.models``: returns queued responses (or raises
+    queued exceptions) and records each request."""
 
     def __init__(self, *responses: Any) -> None:
         self.responses = list(responses)
         self.requests: list[dict[str, Any]] = []
 
-    async def create(self, **kwargs: Any) -> Any:
-        self.requests.append(kwargs)
+    async def generate_content(self, *, model: str, contents: Any, config: Any) -> Any:
+        snapshot = list(contents) if isinstance(contents, list) else contents
+        self.requests.append({"model": model, "contents": snapshot, "config": config})
         item = self.responses.pop(0)
         if isinstance(item, BaseException):
             raise item
         return item
+
+
+def tool_results(request: dict[str, Any]) -> list[Any]:
+    """Function responses the app sent back in a recorded request."""
+    return [part.function_response for part in request["contents"][-1].parts]
 
 
 @pytest.fixture
@@ -110,16 +127,16 @@ def make_client(air_data: AirData) -> Iterator[Callable[..., TestClient]]:
 
     def _make(
         *,
-        messages: FakeMessages | None = None,
+        models: FakeModels | None = None,
         air: FakeAirService | None = None,
         grid: FakeGrid | None = None,
         **settings: Any,
     ) -> TestClient:
-        app = create_app(Settings(anthropic_api_key=None, **settings))
+        app = create_app(Settings(gemini_api_key=None, **settings))
         app.state.air_service = air or FakeAirService(air_data)
         app.state.grid_service = grid or FakeGrid(DEFAULT_GRID)
         app.state.geocoding_service = FakeGeocoding()
-        app.state.ai = ClaudeClient(messages, "claude-opus-5-5") if messages else None
+        app.state.ai = GeminiClient(models, "gemini-test") if models else None
         client = TestClient(app, raise_server_exceptions=False)
         client.__enter__()
         clients.append(client)

@@ -1,5 +1,5 @@
-anthropic==2.14.0
 fastapi==0.165.0
+google-genai==3.6.1
 httpx==0.28.1
 pydantic==2.14.4
 pydantic-settings==2.16.3

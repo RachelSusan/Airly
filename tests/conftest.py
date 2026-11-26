@@ -1,4 +1,4 @@
-"""Shared fixtures. Tests never touch the network or the real Claude API."""
+"""Shared fixtures. Tests never touch the network or the real Gemini API."""
 
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ BASE_TIME = datetime(2026, 11, 26, 0, 0)
 
 @pytest.fixture(autouse=True)
 def _test_env(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
+    monkeypatch.setenv("GEMINI_API_KEY", "test-key")
     monkeypatch.setenv("APP_ENV", "development")
 
 
