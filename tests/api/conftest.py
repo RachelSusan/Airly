@@ -14,7 +14,7 @@ from fastapi.testclient import TestClient
 from app.ai.client import ClaudeClient
 from app.config import Settings
 from app.main import create_app
-from app.models.air import AirData, Place
+from app.models.air import AirData, GridPoint, Place, Pollutants
 from app.services.air_quality import parse_air_data
 from app.services.errors import UpstreamError
 
@@ -35,6 +35,23 @@ class FakeAirService:
 class FakeGeocoding:
     async def search(self, query: str) -> list[Place]:
         return [Place(name="New Delhi", country="India", lat=28.64, lon=77.22)]
+
+
+class FakeGrid:
+    def __init__(self, points: list[GridPoint] | None = None) -> None:
+        self.points = points
+
+    async def get_grid(self, lat: float, lon: float) -> tuple[list[GridPoint], bool]:
+        if self.points is None:
+            raise UpstreamError("down")
+        return self.points, False
+
+
+DEFAULT_GRID = [
+    GridPoint(lat=28.61, lon=77.21, pollutants=Pollutants(pm2_5=186.0)),
+    GridPoint(lat=28.71, lon=77.21, pollutants=Pollutants(pm2_5=40.0)),
+    GridPoint(lat=28.51, lon=77.21, pollutants=Pollutants(no2=20.0)),  # no particulates
+]
 
 
 class FakeAPIError(anthropic.APIError):
@@ -83,10 +100,12 @@ def make_client(air_data: AirData) -> Iterator[Callable[..., TestClient]]:
         *,
         messages: FakeMessages | None = None,
         air: FakeAirService | None = None,
+        grid: FakeGrid | None = None,
         **settings: Any,
     ) -> TestClient:
         app = create_app(Settings(anthropic_api_key=None, **settings))
         app.state.air_service = air or FakeAirService(air_data)
+        app.state.grid_service = grid or FakeGrid(DEFAULT_GRID)
         app.state.geocoding_service = FakeGeocoding()
         app.state.ai = ClaudeClient(messages, "claude-opus-5-5") if messages else None
         client = TestClient(app, raise_server_exceptions=False)

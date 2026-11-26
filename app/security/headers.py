@@ -6,12 +6,17 @@ from collections.abc import Awaitable, Callable
 
 from fastapi import FastAPI, Request, Response
 
+# Leaflet (map library) is loaded from unpkg pinned to one version with Subresource Integrity;
+# map tiles come from OpenStreetMap. Nothing else outside our origin is allowed.
+MAP_LIBRARY_ORIGIN = "https://unpkg.com"
+MAP_TILE_ORIGIN = "https://tile.openstreetmap.org"
+
 CONTENT_SECURITY_POLICY = "; ".join(
     (
         "default-src 'self'",
-        "script-src 'self'",
-        "style-src 'self'",
-        "img-src 'self' data:",
+        f"script-src 'self' {MAP_LIBRARY_ORIGIN}",
+        f"style-src 'self' {MAP_LIBRARY_ORIGIN}",
+        f"img-src 'self' data: {MAP_TILE_ORIGIN} {MAP_LIBRARY_ORIGIN}",
         "connect-src 'self'",
         "font-src 'self'",
         "object-src 'none'",

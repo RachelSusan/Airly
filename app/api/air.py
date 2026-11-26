@@ -6,25 +6,32 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
 
-from app.api.deps import get_air_service, get_geocoding_service, rate_limit
-from app.engine.aqi import aqi_series
-from app.engine.facts import current_point
+from app.api.deps import get_air_service, get_geocoding_service, get_grid_service, rate_limit
+from app.engine.aqi import InsufficientDataError, aqi_series, compute_aqi
+from app.engine.facts import NoAirDataError, current_point
 from app.engine.risk import Sensitivity, outdoor_guidance
 from app.engine.windows import Activity, TimeWindow, best_window
 from app.models.api import (
+    AirGridResponse,
     AirResponse,
     CurrentConditions,
     ForecastHour,
     GeocodeResponse,
+    GridCell,
     Location,
     WindowOut,
 )
-from app.services.air_quality import AirQualityService
+from app.services.air_grid import GRID_STEP_DEG, AirGridService
+from app.services.air_quality import AirQualityService, round_coord
 from app.services.geocoding import GeocodingService
 
 router = APIRouter(prefix="/api", tags=["air"], dependencies=[Depends(rate_limit("read"))])
 
 QUERY_PATTERN = r"^[\w\s,.'\-]+$"
+GRID_NOTE = (
+    "Modelled regional air quality (about 10-40 km resolution). It shows broad patterns "
+    "around you, not differences between individual streets."
+)
 DASHBOARD_ACTIVITIES = (Activity.WALK, Activity.JOG, Activity.PLAY, Activity.COMMUTE)
 
 
@@ -75,6 +82,42 @@ async def air(
         ],
         best_windows={a.value: _window_out(best_window(series, a)) for a in DASHBOARD_ACTIVITIES},
         stale=stale,
+    )
+
+
+@router.get("/air/grid")
+async def air_grid(
+    lat: Annotated[float, Query(ge=-90, le=90)],
+    lon: Annotated[float, Query(ge=-180, le=180)],
+    service: Annotated[AirGridService, Depends(get_grid_service)],
+) -> AirGridResponse:
+    """Current AQI on a grid around the location, for the neighbourhood map."""
+    points, stale = await service.get_grid(lat, lon)
+    cells = []
+    for point in points:
+        try:
+            result = compute_aqi(point.pollutants.as_mapping())
+        except InsufficientDataError:
+            continue
+        cells.append(
+            GridCell(
+                lat=point.lat,
+                lon=point.lon,
+                aqi=result.aqi,
+                category=result.category,
+                label=result.category.label,
+                dominant=result.dominant,
+                pm2_5=point.pollutants.pm2_5,
+            )
+        )
+    if not cells:
+        raise NoAirDataError("No grid data")
+    return AirGridResponse(
+        center=Location(lat=round_coord(lat), lon=round_coord(lon)),
+        step_deg=GRID_STEP_DEG,
+        cells=cells,
+        stale=stale,
+        note=GRID_NOTE,
     )
 
 

@@ -110,6 +110,7 @@ async def simulate(
             pm25_g=result.pm25_g,
             nox_g=result.nox_g,
             exposure_change_pct=result.exposure_change_pct,
+            baseline_co2_kg=result.baseline_co2_kg,
         ),
         explanation=explanation,
         next_step=next_step,

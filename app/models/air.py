@@ -54,6 +54,14 @@ class Place(_Frozen):
     timezone: str | None = None
 
 
+class GridPoint(_Frozen):
+    """Current pollutants at one model grid point (for the neighbourhood map)."""
+
+    lat: float
+    lon: float
+    pollutants: Pollutants
+
+
 class AirData(_Frozen):
     """Current conditions plus the hourly forecast for one location."""
 

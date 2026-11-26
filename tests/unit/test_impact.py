@@ -27,6 +27,7 @@ def test_petrol_to_metro_matches_documented_example() -> None:
     assert result.pm25_g == -68.6
     assert result.nox_g == -374.4
     assert result.period == "year"
+    assert result.baseline_co2_kg == 1060.8  # 0.170 kg/km x 6,240 km before the switch
 
 
 def test_petrol_to_public_rejects_private_modes() -> None:

@@ -98,6 +98,7 @@ class ScenarioResult:
     pm25_g: float | None
     nox_g: float | None
     exposure_change_pct: float | None = None
+    baseline_co2_kg: float | None = None  # emissions before the change, for comparison charts
     period: str = "year"
     assumptions: tuple[str, ...] = ()
     sources: tuple[str, ...] = field(default=SOURCES)
@@ -136,6 +137,7 @@ def commute_switch(
         co2_kg=round((new.co2_kg - old.co2_kg) * km, 1),
         pm25_g=round((new.pm25_g - old.pm25_g) * km, 1),
         nox_g=round((new.nox_g - old.nox_g) * km, 1),
+        baseline_co2_kg=round(old.co2_kg * km, 1),
         assumptions=(
             f"{distance_km} km each way, {days_per_week} days a week, "
             f"{WEEKS_PER_YEAR} weeks a year ({km:,.0f} km)",
@@ -175,6 +177,7 @@ def families_reduce_driving(
         co2_kg=round((new.co2_kg - old.co2_kg) * km, 1),
         pm25_g=round((new.pm25_g - old.pm25_g) * km, 1),
         nox_g=round((new.nox_g - old.nox_g) * km, 1),
+        baseline_co2_kg=round(old.co2_kg * km, 1),
         assumptions=(
             f"{families:,} families each drive {km_per_day_reduced} km less a day, "
             f"{days_per_week} days a week ({km:,.0f} km a year in total)",
@@ -234,5 +237,6 @@ def avoid_peak_hours(
         pm25_g=round(-OFF_PEAK_FUEL_SAVING * factor.pm25_g * km, 1),
         nox_g=round(-OFF_PEAK_FUEL_SAVING * factor.nox_g * km, 1),
         exposure_change_pct=exposure,
+        baseline_co2_kg=round(factor.co2_kg * km, 1),
         assumptions=tuple(assumptions),
     )

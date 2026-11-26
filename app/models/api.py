@@ -84,6 +84,24 @@ class AirResponse(BaseModel):
     stale: bool
 
 
+class GridCell(BaseModel):
+    lat: float
+    lon: float
+    aqi: int
+    category: AqiCategory
+    label: str
+    dominant: Pollutant
+    pm2_5: float | None
+
+
+class AirGridResponse(BaseModel):
+    center: Location
+    step_deg: float
+    cells: list[GridCell]
+    stale: bool
+    note: str
+
+
 # ---------------------------------------------------------------- plan
 
 
@@ -268,6 +286,7 @@ class ScenarioNumbers(BaseModel):
     pm25_g: float | None
     nox_g: float | None
     exposure_change_pct: float | None
+    baseline_co2_kg: float | None
 
 
 class SimulateResponse(BaseModel):

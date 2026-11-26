@@ -22,7 +22,7 @@ COORD_DECIMALS = 2  # ~1 km: better cache hits and privacy
 UG_PER_MG = 1000.0
 
 # Open-Meteo variable name -> our pollutant field
-_AIR_VARIABLES: dict[str, str] = {
+AIR_VARIABLES: dict[str, str] = {
     "pm2_5": "pm2_5",
     "pm10": "pm10",
     "nitrogen_dioxide": "no2",
@@ -64,8 +64,8 @@ class AirQualityService:
         base = {"latitude": lat, "longitude": lon, "timezone": "auto", "forecast_days": 2}
         air_params = {
             **base,
-            "hourly": ",".join(_AIR_VARIABLES),
-            "current": ",".join(_AIR_VARIABLES),
+            "hourly": ",".join(AIR_VARIABLES),
+            "current": ",".join(AIR_VARIABLES),
         }
         weather_params = {
             **base,
@@ -106,7 +106,7 @@ def parse_air_data(
         time = _parse_time(raw_time)
         if time < current_time.replace(minute=0):
             continue
-        pollutants = _pollutants({k: air_hourly[k][index] for k in _AIR_VARIABLES})
+        pollutants = parse_pollutants({k: air_hourly[k][index] for k in AIR_VARIABLES})
         readings.append(
             HourlyReading(
                 time=time, pollutants=pollutants, weather=weather_by_time.get(time, Weather())
@@ -117,7 +117,7 @@ def parse_air_data(
 
     current = HourlyReading(
         time=current_time,
-        pollutants=_pollutants({k: air_json["current"].get(k) for k in _AIR_VARIABLES}),
+        pollutants=parse_pollutants({k: air_json["current"].get(k) for k in AIR_VARIABLES}),
         weather=_weather({k: weather_json["current"].get(k) for k in _WEATHER_VARIABLES}),
     )
     return AirData(
@@ -137,8 +137,8 @@ def _weather_by_time(hourly: dict[str, list[Any]]) -> dict[datetime, Weather]:
     return result
 
 
-def _pollutants(raw: dict[str, Any]) -> Pollutants:
-    values = {_AIR_VARIABLES[k]: _number(v) for k, v in raw.items()}
+def parse_pollutants(raw: dict[str, Any]) -> Pollutants:
+    values = {AIR_VARIABLES[k]: _number(v) for k, v in raw.items()}
     if values["co"] is not None:
         values["co"] = round(values["co"] / UG_PER_MG, 3)  # µg/m³ -> mg/m³
     return Pollutants(**values)

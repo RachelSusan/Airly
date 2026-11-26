@@ -10,6 +10,7 @@ from app.ai.client import ClaudeClient
 from app.api.errors import AppError
 from app.config import Settings
 from app.security.rate_limit import SlidingWindowLimiter
+from app.services.air_grid import AirGridService
 from app.services.air_quality import AirQualityService
 from app.services.geocoding import GeocodingService
 
@@ -26,6 +27,10 @@ def get_air_service(request: Request) -> AirQualityService:
 
 def get_geocoding_service(request: Request) -> GeocodingService:
     return request.app.state.geocoding_service
+
+
+def get_grid_service(request: Request) -> AirGridService:
+    return request.app.state.grid_service
 
 
 def get_ai(request: Request) -> ClaudeClient | None:

@@ -17,9 +17,10 @@ from app.api import air, chat, health, plan, simulate
 from app.api.deps import build_limiters
 from app.api.errors import register_error_handlers
 from app.config import Settings, get_settings
-from app.models.air import AirData, Place
+from app.models.air import AirData, GridPoint, Place
 from app.security.body_limit import add_body_limit
 from app.security.headers import add_security_headers
+from app.services.air_grid import AirGridService
 from app.services.air_quality import AirQualityService
 from app.services.cache import TTLCache
 from app.services.geocoding import GeocodingService
@@ -50,6 +51,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     TTLCache[AirData](
                         ttl=settings.air_cache_ttl_seconds,
                         max_entries=500,
+                        stale_ttl=STALE_AIR_SECONDS,
+                    ),
+                )
+            if not hasattr(state, "grid_service"):
+                state.grid_service = AirGridService(
+                    http,
+                    TTLCache[list[GridPoint]](
+                        ttl=settings.air_cache_ttl_seconds,
+                        max_entries=200,
                         stale_ttl=STALE_AIR_SECONDS,
                     ),
                 )
