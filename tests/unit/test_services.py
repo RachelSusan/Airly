@@ -6,7 +6,13 @@ import pytest
 import respx
 
 from app.models.air import AirData, Place
-from app.services.air_quality import AIR_QUALITY_URL, WEATHER_URL, AirQualityService
+from app.services.air_quality import (
+    AIR_QUALITY_URL,
+    MET_USER_AGENT,
+    MET_WEATHER_URL,
+    WEATHER_URL,
+    AirQualityService,
+)
 from app.services.cache import TTLCache
 from app.services.errors import UpstreamError
 from app.services.geocoding import GEOCODING_URL, GeocodingService
@@ -61,11 +67,55 @@ async def test_air_quality_works_without_weather(load_fixture: Loader) -> None:
         return_value=httpx.Response(200, json=load_fixture("air_quality.json"))
     )
     respx.get(WEATHER_URL).mock(return_value=httpx.Response(429, text="Too many requests"))
+    respx.get(MET_WEATHER_URL).mock(side_effect=httpx.ConnectError("offline"))
     async with httpx.AsyncClient() as client:
         data, _ = await _air_service(client).get_air_data(28.61, 77.21)
     assert data.current.pollutants.pm2_5 == 186.0
     assert data.current.weather.wind_kmh is None
     assert data.forecast[0].weather.temperature_c is None
+
+
+def _met_entry(utc_time: str, temp: float, wind_ms: float) -> dict[str, Any]:
+    return {
+        "time": utc_time,
+        "data": {
+            "instant": {
+                "details": {
+                    "air_temperature": temp,
+                    "relative_humidity": 60.0,
+                    "wind_speed": wind_ms,
+                }
+            },
+            "next_1_hours": {"details": {"precipitation_amount": 0.2}},
+        },
+    }
+
+
+@respx.mock
+async def test_air_quality_uses_backup_weather(load_fixture: Loader) -> None:
+    respx.get(AIR_QUALITY_URL).mock(
+        return_value=httpx.Response(200, json=load_fixture("air_quality.json"))
+    )
+    respx.get(WEATHER_URL).mock(return_value=httpx.Response(429, text="Too many requests"))
+    met = {
+        "properties": {
+            "timeseries": [
+                # 04:00 UTC = 09:30 IST -> the fixture's current hour (09:00); 05:00 UTC -> 10:00
+                _met_entry("2026-11-26T04:00:00Z", 21.0, 1.0),
+                _met_entry("2026-11-26T05:00:00Z", 23.5, 2.0),
+            ]
+        }
+    }
+    met_route = respx.get(MET_WEATHER_URL).mock(return_value=httpx.Response(200, json=met))
+    async with httpx.AsyncClient() as client:
+        data, _ = await _air_service(client).get_air_data(28.61, 77.21)
+    assert met_route.calls.last.request.headers["User-Agent"] == MET_USER_AGENT
+    assert data.current.weather.temperature_c == 21.0
+    assert data.current.weather.wind_kmh == 3.6
+    assert data.current.weather.precip_mm == 0.2
+    ten_am = next(r for r in data.forecast if r.time.hour == 10)
+    assert ten_am.weather.temperature_c == 23.5
+    assert ten_am.weather.wind_kmh == 7.2
 
 
 @respx.mock

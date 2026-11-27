@@ -11,6 +11,7 @@ Legend: `[ ]` to do Â· `[x]` done Â· `[~]` in progress
 - [x] First commit and push to `main`
 - [x] `app/config.py`, `app/main.py` with security headers and a health endpoint
 - [x] Services: Open-Meteo air quality, weather, geocoding, TTL cache (checked against the live API)
+- [x] Backup weather from MET Norway when Open-Meteo weather is unavailable (seen on Render)
 - [x] Engine: `aqi.py`, `risk.py`, `windows.py`, `ventilation.py`, `checklist.py`, `exposure.py`, `impact.py`
 - [x] Unit tests for the engine and services (120 tests, 99% coverage)
 - [x] CI workflow (lint, tests with coverage gate, `pip-audit`)

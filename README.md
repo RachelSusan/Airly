@@ -49,7 +49,7 @@ User + family profile ───────────────────�
 
 ## Assumptions
 
-- Air-quality and weather data come from the Open-Meteo APIs (modelled data, not a government monitoring station).
+- Air-quality and weather data come from the Open-Meteo APIs (modelled data, not a government monitoring station). If Open-Meteo's weather service is unavailable, weather comes from [MET Norway](https://api.met.no/) instead; without any weather, the dashboard still shows air quality.
 - AQI follows India's **NAQI (CPCB)** categories. The hourly view uses hourly concentrations (a close estimate; the official index uses 24-hour or 8-hour averages). The week / month trend uses each day's average concentrations, which matches the official 24-hour method more closely.
 - Emission factors were checked against published sources in November 2026. Each one is labelled **Good** or **Estimate** in [docs/impact_methodology.md](docs/impact_methodology.md); results are shown as estimates and never as changes to local AQI.
 - The map shows modelled regional air quality (about 10–40 km resolution), not street-level readings.
@@ -60,7 +60,7 @@ User + family profile ───────────────────�
 
 ## Tech stack
 
-Python 3.12+ · FastAPI · Pydantic · Google Gemini API (`gemini-3.5-flash-lite` with automatic backups, free tier) · Open-Meteo · HTML, CSS and JavaScript · pytest · GitHub Actions
+Python 3.12+ · FastAPI · Pydantic · Google Gemini API (`gemini-3.5-flash-lite` with automatic backups, free tier) · Open-Meteo · MET Norway (backup weather) · HTML, CSS and JavaScript · pytest · GitHub Actions
 
 ## Run locally
 

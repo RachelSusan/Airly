@@ -46,7 +46,7 @@ Airly/
 │   │   └── health.py        # /api/health
 │   ├── models/              # Pydantic request/response schemas
 │   ├── services/
-│   │   ├── air_quality.py   # Open-Meteo air-quality + forecast client
+│   │   ├── air_quality.py   # Open-Meteo air-quality + forecast client (MET Norway weather backup)
 │   │   ├── geocoding.py     # Open-Meteo geocoding client
 │   │   └── cache.py         # Small async TTL cache
 │   ├── engine/
@@ -86,7 +86,7 @@ Airly/
 
 ### 3.1 Dashboard: `GET /api/air?lat&lon`
 1. Validate coordinates (latitude −90..90, longitude −180..180), rounded to 2 decimals (about 1 km, which improves cache hits and privacy).
-2. Look up the cache (TTL 15 minutes). On a miss, fetch air quality and weather from Open-Meteo **in parallel**.
+2. Look up the cache (TTL 15 minutes). On a miss, fetch air quality and weather from Open-Meteo **in parallel**. Air quality is required. If the weather call fails, the service asks MET Norway (`api.met.no`, free, no key, identified by a User-Agent) and maps its UTC hours onto local hours; if that fails too, weather fields stay empty.
 3. `engine.aqi` calculates the NAQI for the current hour and each forecast hour.
 4. `engine.windows` labels each hour as safe, caution or avoid for a general adult.
 5. Return the combined JSON. **No AI call.** The dashboard is fast and always available.
