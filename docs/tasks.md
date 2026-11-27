@@ -1,8 +1,8 @@
 ﻿# Tasks and Progress: Airly
 
-Deadline: **29 Nov 2026, 11:59 PM IST** Â· Submissions: at most 3 Â· Video mandatory
+Deadline: **29 Nov 2026, 11:59 PM IST** · Submissions: at most 3 · Video mandatory
 
-Legend: `[ ]` to do Â· `[x]` done Â· `[~]` in progress
+Legend: `[ ]` to do · `[x]` done · `[~]` in progress
 
 ## Day 1: 26 Nov: Foundations
 - [x] Project docs (README, Agents, CLAUDE, PRD, design system, architecture, database, API, security, accessibility, code style, testing, AI prompts, impact methodology, deployment, tasks)
@@ -35,10 +35,10 @@ Legend: `[ ]` to do Â· `[x]` done Â· `[~]` in progress
 ## Day 3: 28 Nov: Polish and proof
 - [x] Checked every emission factor against sources; values updated and confidence marked (`impact_methodology.md`)
 - [ ] School activity planner and auto-refresh change highlights
-- [ ] Security checklist (`security.md` Â§11) and `pip-audit`
+- [ ] Security checklist (`security.md` §11) and `pip-audit`
 - [ ] Coverage â‰¥ 80%; Lighthouse a11y â‰¥ 95
 - [ ] README final: screenshots (small), live link, assumptions
-- [ ] Record the demo video (follow the manual demo script in `testing.md`)
+- [x] Record the demo video: https://youtu.be/jif9sAX5RC8
 - [ ] **Submission 2** with video
 
 ## Day 4: 29 Nov: Buffer
@@ -50,4 +50,4 @@ Legend: `[ ]` to do Â· `[x]` done Â· `[~]` in progress
 - [ ] README covers vertical, approach and logic, how it works, assumptions
 - [ ] Live URL works; fallback works without the AI
 - [ ] All tests and lint pass in CI
-- [ ] Video link (unlisted YouTube or shared Drive) works in a private window
+- [x] Video link (unlisted YouTube) works in a private window
