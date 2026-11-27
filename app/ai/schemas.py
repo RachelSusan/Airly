@@ -33,7 +33,8 @@ def strict_schema(model: type[BaseModel]) -> dict[str, Any]:
             return [resolve(item) for item in node]
         return node
 
-    return resolve(raw)
+    schema: dict[str, Any] = resolve(raw)
+    return schema
 
 
 PLAN_SCHEMA: dict[str, Any] = strict_schema(PlanContent)

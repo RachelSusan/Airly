@@ -76,8 +76,9 @@ pytest --cov=app --cov-report=term-missing
 1. Set up Python 3.12
 2. `pip install -r requirements.txt -r requirements-dev.txt`
 3. `ruff check .` and `ruff format --check .`
-4. `pytest --cov=app --cov-fail-under=80`
-5. `pip-audit`
+4. `mypy` (strict)
+5. `pytest --cov=app --cov-fail-under=80`
+6. `pip-audit`
 
 ## 6. Manual demo test script (before each submission)
 

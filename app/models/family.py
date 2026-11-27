@@ -88,8 +88,11 @@ class Home(_Strict):
 
 
 class Household(_Strict):
-    """Shared home details. ``commute`` and ``school`` are kept for older clients;
-    per-member travel lives on each ``Member``."""
+    """Shared home details.
+
+    ``commute`` and ``school`` are kept for older clients; per-member travel lives on
+    each ``Member``.
+    """
 
     commute: Commute | None = None
     school: School | None = None

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Any
 
 from app.engine.impact import ScenarioResult
@@ -186,45 +187,69 @@ def _sustainable(commute: dict[str, Any] | None, members: list[dict[str, Any]]) 
     return choices
 
 
+ChatAnswer = Callable[[dict[str, Any], str], str]
+
+
 def chat_reply(question: str, facts: dict[str, Any]) -> str:
-    """Answer common questions from the facts using keyword matching."""
+    """Answer common questions from the facts using keyword matching (first topic wins)."""
     q = question.lower()
-    now = facts["now"]
-    lead = f"The air now is {now['category']} (AQI {now['aqi']})."
-    windows = facts["best_windows"]
-    place = (facts.get("location") or {}).get("name")
-
-    if any(p in q for p in ("which city", "what city", "where am i", "my location", "which place")):
-        if place:
-            return f"You're seeing live air quality for {place}. {lead}"
-        return f"{lead} Your exact place name wasn't shared, only your approximate location."
-
-    if any(word in q for word in ("window", "ventilat", "fresh air")):
-        v = facts["ventilation"]
-        answer = "Yes, open them." if v["open_windows_now"] else "Not right now."
-        extra = f" Best time to air out: about {v['airing_time']}." if v["airing_time"] else ""
-        return f"{answer} {v['reason']}{extra}"
-    if any(word in q for word in ("kid", "child", "play", "school")):
-        return f"{lead} {_window_sentence(windows.get('play'), 'outdoor play', facts.get('today'))}"
-    if any(word in q for word in ("jog", "run", "exercise", "workout")):
-        return f"{lead} {_window_sentence(windows.get('jog'), 'a jog', facts.get('today'))}"
-    if any(word in q for word in ("walk", "outside", "outdoor")):
-        return f"{lead} {_window_sentence(windows.get('walk'), 'a walk', facts.get('today'))}"
-    if any(word in q for word in ("commute", "travel", "office", "drive")):
-        commute = facts.get("commute")
-        if commute and commute.get("best_departure_window"):
-            w = commute["best_departure_window"]
-            return f"{lead} The cleanest time to travel near your usual time is {w['start']}."
-        return f"{lead} Add your commute in the profile for travel advice."
-    if any(word in q for word in ("mask", "n95")):
-        return (
-            f"{lead} Outdoors, a well-fitted N95 mask filters far more fine particles "
-            "than a cloth mask."
-        )
+    lead = f"The air now is {facts['now']['category']} (AQI {facts['now']['aqi']})."
+    for keywords, answer in _CHAT_TOPICS:
+        if any(word in q for word in keywords):
+            return answer(facts, lead)
     return (
         f"{lead} I can help with outdoor activities, children's play, windows, masks "
         "and commuting. Try asking one of those."
     )
+
+
+def _location_answer(facts: dict[str, Any], lead: str) -> str:
+    place = (facts.get("location") or {}).get("name")
+    if place:
+        return f"You're seeing live air quality for {place}. {lead}"
+    return f"{lead} Your exact place name wasn't shared, only your approximate location."
+
+
+def _ventilation_answer(facts: dict[str, Any], _lead: str) -> str:
+    v = facts["ventilation"]
+    answer = "Yes, open them." if v["open_windows_now"] else "Not right now."
+    extra = f" Best time to air out: about {v['airing_time']}." if v["airing_time"] else ""
+    return f"{answer} {v['reason']}{extra}"
+
+
+def _activity_answer(activity: str, label: str) -> ChatAnswer:
+    def answer(facts: dict[str, Any], lead: str) -> str:
+        window = facts["best_windows"].get(activity)
+        return f"{lead} {_window_sentence(window, label, facts.get('today'))}"
+
+    return answer
+
+
+def _commute_answer(facts: dict[str, Any], lead: str) -> str:
+    commute = facts.get("commute")
+    if commute and commute.get("best_departure_window"):
+        start = commute["best_departure_window"]["start"]
+        return f"{lead} The cleanest time to travel near your usual time is {start}."
+    return f"{lead} Add your commute in the profile for travel advice."
+
+
+def _mask_answer(_facts: dict[str, Any], lead: str) -> str:
+    return (
+        f"{lead} Outdoors, a well-fitted N95 mask filters far more fine particles "
+        "than a cloth mask."
+    )
+
+
+# Checked in order: the first topic with a matching keyword answers.
+_CHAT_TOPICS: tuple[tuple[tuple[str, ...], ChatAnswer], ...] = (
+    (("which city", "what city", "where am i", "my location", "which place"), _location_answer),
+    (("window", "ventilat", "fresh air"), _ventilation_answer),
+    (("kid", "child", "play", "school"), _activity_answer("play", "outdoor play")),
+    (("jog", "run", "exercise", "workout"), _activity_answer("jog", "a jog")),
+    (("walk", "outside", "outdoor"), _activity_answer("walk", "a walk")),
+    (("commute", "travel", "office", "drive"), _commute_answer),
+    (("mask", "n95"), _mask_answer),
+)
 
 
 def _window_sentence(window: dict[str, Any] | None, label: str, today: str | None = None) -> str:

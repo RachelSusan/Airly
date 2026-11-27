@@ -79,11 +79,12 @@ class AirQualityService:
             "hourly": ",".join(_WEATHER_VARIABLES),
             "current": ",".join(_WEATHER_VARIABLES),
         }
-        air_result, weather_result = await asyncio.gather(
+        results: tuple[dict[str, Any] | BaseException, ...] = await asyncio.gather(
             self._get_json(AIR_QUALITY_URL, air_params),
             self._get_json(WEATHER_URL, weather_params),
             return_exceptions=True,
         )
+        air_result, weather_result = results
         if isinstance(air_result, BaseException):
             raise air_result  # air quality is essential
         air_json = air_result
@@ -122,12 +123,13 @@ class AirQualityService:
             response = await self._http.get(url, params=params, headers=headers)
         except httpx.HTTPError as exc:
             raise UpstreamError(f"{host}: {type(exc).__name__}") from exc
-        if response.status_code >= 400:
+        if response.is_error:
             raise UpstreamError(f"{host}: HTTP {response.status_code} {response.text[:120]}")
         try:
-            return response.json()
+            payload: dict[str, Any] = response.json()
         except ValueError as exc:
             raise UpstreamError(f"{host}: invalid JSON") from exc
+        return payload
 
 
 def parse_air_data(
@@ -211,6 +213,7 @@ def _weather_by_time(hourly: dict[str, list[Any]]) -> dict[datetime, Weather]:
 
 
 def parse_pollutants(raw: dict[str, Any]) -> Pollutants:
+    """Map Open-Meteo pollutant values to ``Pollutants`` (CO converted to mg/m³)."""
     values = {AIR_VARIABLES[k]: _number(v) for k, v in raw.items()}
     if values["co"] is not None:
         values["co"] = round(values["co"] / UG_PER_MG, 3)  # µg/m³ -> mg/m³

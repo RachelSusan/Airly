@@ -51,7 +51,9 @@ class AIUnavailableError(Exception):
 class ModelsAPI(Protocol):
     """The part of ``genai.Client().aio.models`` we use (lets tests inject a fake)."""
 
-    async def generate_content(self, *, model: str, contents: Any, config: Any) -> Any: ...
+    async def generate_content(self, *, model: str, contents: Any, config: Any) -> Any:
+        """Generate a response (``google.genai`` signature)."""
+        ...
 
 
 class GeminiClient:
@@ -107,9 +109,12 @@ class GeminiClient:
         """Answer the last user message, letting the model call ``tools`` via ``run_tool``.
 
         Args:
+            system: System instruction for the model.
             messages: ``(role, text)`` pairs; role is ``"user"`` or ``"assistant"``.
             tools: ``{"name", "description", "parameters"}`` (JSON Schema) definitions.
             run_tool: Executes a call; returns a result dict (``{"error": ...}`` on failure).
+            max_rounds: Most tool-calling rounds before giving up.
+            max_tokens: Output token limit for each model call.
 
         Returns:
             ``(reply_text, names_of_tools_used_successfully)``.

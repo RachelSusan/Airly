@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
@@ -85,64 +86,89 @@ class ToolError(Exception):
     """A tool call had invalid input or an unknown name."""
 
 
+ToolHandler = Callable[[Any, HouseholdFacts], dict[str, Any]]
+
+
+def _current_conditions(_raw: Any, facts: HouseholdFacts) -> dict[str, Any]:
+    data = facts.data
+    return {
+        "location": data["location"],
+        "now": data["now"],
+        "weather_now": data["weather_now"],
+        "forecast_summary": data["forecast_summary"],
+    }
+
+
+def _forecast_windows(raw: Any, facts: HouseholdFacts) -> dict[str, Any]:
+    args = _WindowArgs.model_validate(raw)
+    data = facts.data
+    window = best_window(
+        facts.series,
+        args.activity,
+        duration_hours=args.duration_hours,
+        sensitivity=Sensitivity(data["household_sensitivity"]),
+    )
+    if window is None:
+        return {"window": None, "note": "No suitable window in the next 24 hours."}
+    return {
+        "window": {
+            "activity": window.activity.value,
+            "day": day_label(window.start),
+            "start": clock(window.start),
+            "end": clock(window.end),
+            "avg_aqi": window.avg_aqi,
+            "category": window.category.label,
+            "advice": window.advice.value,
+            "guidance": window.guidance,
+        },
+        "jog_exposure": data["jog_exposure"] if args.activity is Activity.JOG else None,
+    }
+
+
+def _family_risk(_raw: Any, facts: HouseholdFacts) -> dict[str, Any]:
+    return {
+        "members": facts.data["members"],
+        "household_sensitivity": facts.data["household_sensitivity"],
+    }
+
+
+def _ventilation(_raw: Any, facts: HouseholdFacts) -> dict[str, Any]:
+    ventilation: dict[str, Any] = facts.data["ventilation"]
+    return ventilation
+
+
+def _commute_switch(raw: Any, _facts: HouseholdFacts) -> dict[str, Any]:
+    args = _SwitchArgs.model_validate(raw)
+    result = commute_switch(args.from_mode, args.to_mode, args.distance_km, args.days_per_week)
+    return {
+        "period": result.period,
+        "co2_kg": result.co2_kg,
+        "pm25_g": result.pm25_g,
+        "nox_g": result.nox_g,
+        "assumptions": list(result.assumptions),
+        "disclaimer": result.disclaimer,
+    }
+
+
+_HANDLERS: dict[str, ToolHandler] = {
+    "get_current_conditions": _current_conditions,
+    "get_forecast_windows": _forecast_windows,
+    "assess_family_risk": _family_risk,
+    "check_ventilation": _ventilation,
+    "estimate_commute_switch": _commute_switch,
+}
+
+
 def run_tool(name: str, raw_input: Any, facts: HouseholdFacts) -> dict[str, Any]:
     """Execute a tool against precomputed facts. Inputs are validated again here.
 
     Raises:
         ToolError: for an unknown tool or invalid input.
     """
-    data = facts.data
+    handler = _HANDLERS.get(name)
+    if handler is None:
+        raise ToolError(f"Unknown tool: {name}")
     try:
-        if name == "get_current_conditions":
-            return {
-                "location": data["location"],
-                "now": data["now"],
-                "weather_now": data["weather_now"],
-                "forecast_summary": data["forecast_summary"],
-            }
-        if name == "get_forecast_windows":
-            args = _WindowArgs.model_validate(raw_input)
-            window = best_window(
-                facts.series,
-                args.activity,
-                duration_hours=args.duration_hours,
-                sensitivity=Sensitivity(data["household_sensitivity"]),
-            )
-            if window is None:
-                return {"window": None, "note": "No suitable window in the next 24 hours."}
-            return {
-                "window": {
-                    "activity": window.activity.value,
-                    "day": day_label(window.start),
-                    "start": clock(window.start),
-                    "end": clock(window.end),
-                    "avg_aqi": window.avg_aqi,
-                    "category": window.category.label,
-                    "advice": window.advice.value,
-                    "guidance": window.guidance,
-                },
-                "jog_exposure": data["jog_exposure"] if args.activity is Activity.JOG else None,
-            }
-        if name == "assess_family_risk":
-            return {
-                "members": data["members"],
-                "household_sensitivity": data["household_sensitivity"],
-            }
-        if name == "check_ventilation":
-            return data["ventilation"]
-        if name == "estimate_commute_switch":
-            args = _SwitchArgs.model_validate(raw_input)
-            result = commute_switch(
-                args.from_mode, args.to_mode, args.distance_km, args.days_per_week
-            )
-            return {
-                "period": result.period,
-                "co2_kg": result.co2_kg,
-                "pm25_g": result.pm25_g,
-                "nox_g": result.nox_g,
-                "assumptions": list(result.assumptions),
-                "disclaimer": result.disclaimer,
-            }
+        return handler(raw_input, facts)
     except (ValidationError, ValueError) as exc:
         raise ToolError(f"Invalid input for {name}") from exc
-    raise ToolError(f"Unknown tool: {name}")

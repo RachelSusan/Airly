@@ -139,16 +139,22 @@ def outdoor_guidance(
     return Guidance(advice=advice, text=text)
 
 
+# Upper bounds of (category level + sensitivity level) for each risk level.
+_LOW_MAX_SCORE = 1
+_MODERATE_MAX_SCORE = 3
+_HIGH_MAX_SCORE = 4
+
+
 def risk_level(category: AqiCategory, sensitivity: Sensitivity) -> RiskLevel:
     """Combine air quality and sensitivity into an overall risk level."""
     if category is AqiCategory.GOOD:
         return RiskLevel.LOW
     score = category.level + sensitivity.level
-    if score <= 1:
+    if score <= _LOW_MAX_SCORE:
         return RiskLevel.LOW
-    if score <= 3:
+    if score <= _MODERATE_MAX_SCORE:
         return RiskLevel.MODERATE
-    if score == 4:
+    if score <= _HIGH_MAX_SCORE:
         return RiskLevel.HIGH
     return RiskLevel.VERY_HIGH
 

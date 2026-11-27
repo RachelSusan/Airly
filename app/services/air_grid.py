@@ -1,5 +1,7 @@
-"""Current pollution at many points in one request: the grid around a location (for the
-smooth map overlay) and arbitrary points such as other cities.
+"""Current pollution at many points in one request.
+
+Used for the grid around a location (the smooth map overlay) and for arbitrary points
+such as other cities.
 
 One Open-Meteo request returns all points. The air-quality model has a resolution of
 roughly 10-40 km, so the grid shows regional patterns, not street-level differences.
@@ -24,6 +26,7 @@ from app.services.errors import UpstreamError
 GRID_SIZE = 7  # 7 x 7 points (~66 km square)
 MAX_POINTS = 80
 GRID_STEP_DEG = 0.1  # ~11 km, close to the model's native spacing
+MAX_LATITUDE = 90.0
 
 
 def grid_coordinates(lat: float, lon: float, size: int = GRID_SIZE) -> list[tuple[float, float]]:
@@ -34,7 +37,7 @@ def grid_coordinates(lat: float, lon: float, size: int = GRID_SIZE) -> list[tupl
         for col in range(-half, half + 1):
             point_lat = round(lat + row * GRID_STEP_DEG, 2)
             point_lon = round(((lon + col * GRID_STEP_DEG + 180) % 360) - 180, 2)
-            if -90 <= point_lat <= 90:
+            if -MAX_LATITUDE <= point_lat <= MAX_LATITUDE:
                 coords.append((point_lat, point_lon))
     return coords
 

@@ -15,7 +15,8 @@ Goal: code that a judge can read in five minutes and understand. **Readable, con
 | Rule | Detail |
 |---|---|
 | Version | Python 3.12+ |
-| Formatter and linter | `ruff format` + `ruff check` (config in `pyproject.toml`) |
+| Formatter and linter | `ruff format` + `ruff check` (config in `pyproject.toml`), including complexity (max 10), docstring and pylint rules |
+| Type checker | `mypy` in strict mode on `app/`, run in CI |
 | Line length | 100 |
 | Typing | Type hints on all public functions; `from __future__ import annotations` |
 | Docstrings | Google style on public modules, classes and functions |
@@ -79,5 +80,8 @@ def naqi_sub_index(pollutant: Pollutant, concentration: float) -> int:
 ```bash
 ruff format .
 ruff check .
+mypy
 pytest
 ```
+
+Optional: `pip install pre-commit && pre-commit install` runs ruff and mypy on every commit (`.pre-commit-config.yaml`). Editor settings are shared through `.editorconfig`.

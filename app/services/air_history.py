@@ -39,7 +39,7 @@ class AirHistoryService:
         )
 
     async def _fetch(self, lat: float, lon: float, days: int) -> list[HourlyReading]:
-        params = {
+        params: dict[str, str | int | float] = {
             "latitude": lat,
             "longitude": lon,
             "hourly": ",".join(AIR_VARIABLES),

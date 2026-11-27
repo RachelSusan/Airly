@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
+from typing import cast
 
 from fastapi import Request
 
@@ -19,27 +20,33 @@ RATE_LIMITS: dict[str, int] = {"read": 60, "ai": 10, "chat": 20}  # requests per
 
 
 def get_settings_dep(request: Request) -> Settings:
-    return request.app.state.settings
+    """App settings."""
+    return cast("Settings", request.app.state.settings)
 
 
 def get_air_service(request: Request) -> AirQualityService:
-    return request.app.state.air_service
+    """Shared air-quality service."""
+    return cast("AirQualityService", request.app.state.air_service)
 
 
 def get_geocoding_service(request: Request) -> GeocodingService:
-    return request.app.state.geocoding_service
+    """Shared geocoding service."""
+    return cast("GeocodingService", request.app.state.geocoding_service)
 
 
 def get_grid_service(request: Request) -> AirGridService:
-    return request.app.state.grid_service
+    """Shared air-grid service."""
+    return cast("AirGridService", request.app.state.grid_service)
 
 
 def get_history_service(request: Request) -> AirHistoryService:
-    return request.app.state.history_service
+    """Shared air-history service."""
+    return cast("AirHistoryService", request.app.state.history_service)
 
 
 def get_ai(request: Request) -> GeminiClient | None:
-    return request.app.state.ai
+    """Gemini client, or ``None`` when AI is not configured."""
+    return cast("GeminiClient | None", request.app.state.ai)
 
 
 def build_limiters() -> dict[str, SlidingWindowLimiter]:

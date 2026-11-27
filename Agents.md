@@ -30,7 +30,7 @@ Read the specific doc before touching that area: `api.md`, `security.md`, `testi
 - Keep modules small and focused. Put business logic in `engine/` and `services/`, never in route handlers.
 - Validate every input with Pydantic models at the API boundary.
 - Add or update tests for every engine function and endpoint you change. Mock all external HTTP and Gemini calls.
-- Run `ruff check .` and `pytest` before committing.
+- Run `ruff check .`, `mypy` and `pytest` before committing.
 - Update `docs/tasks.md` when a task is finished, and the matching doc when a contract changes.
 - Commit small, frequent changes with Conventional Commit messages (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`).
 - Do not add a dependency without a clear reason. Prefer the standard library and what is already in `requirements.txt`.
@@ -44,6 +44,7 @@ uvicorn app.main:app --reload        # run (http://localhost:8000)
 pytest                               # test
 pytest --cov=app                     # coverage
 ruff check . && ruff format --check .  # lint
+mypy                                 # strict type check (config in pyproject.toml)
 ```
 
 ## Do not

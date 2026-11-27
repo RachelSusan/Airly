@@ -4,11 +4,13 @@ from __future__ import annotations
 
 from datetime import date, datetime
 
+NOON_HOUR = 12
+
 
 def clock(moment: datetime) -> str:
     """12-hour clock time, e.g. ``"4:00 PM"`` or ``"11:30 AM"``."""
-    hour = moment.hour % 12 or 12
-    return f"{hour}:{moment.minute:02d} {'AM' if moment.hour < 12 else 'PM'}"
+    hour = moment.hour % NOON_HOUR or NOON_HOUR
+    return f"{hour}:{moment.minute:02d} {'AM' if moment.hour < NOON_HOUR else 'PM'}"
 
 
 def day_label(day: date | datetime) -> str:

@@ -11,13 +11,34 @@ target-version = "py312"
 extend-exclude = [".venv"]
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "N", "UP", "B", "S", "SIM", "RUF"]
+select = [
+    "E", "F", "W", "I", "N", "UP", "B", "S", "SIM", "RUF",
+    "C90",  # complexity
+    "D",    # docstrings
+    "RET", "ARG", "PERF", "PTH", "PIE", "T20", "ERA",
+    "PLE", "PLW", "PLR",  # pylint: errors, warnings, refactoring
+]
+ignore = ["D105", "D107"]  # magic methods and __init__ are documented on the class
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.pylint]
+max-args = 6  # extra arguments are keyword-only
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S101"]
+"tests/**" = ["S101", "D", "PLR2004", "ARG"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]
+
+[tool.mypy]
+files = ["app"]
+strict = true
+warn_unreachable = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

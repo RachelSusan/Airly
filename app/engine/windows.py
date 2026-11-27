@@ -16,6 +16,7 @@ from app.engine.risk import Advice, Intensity, Sensitivity, outdoor_guidance
 
 ONE_HOUR = timedelta(hours=1)
 MAX_DURATION_HOURS = 4
+HOURS_PER_DAY = 24
 
 
 class Activity(StrEnum):
@@ -87,7 +88,7 @@ def best_window(
         raise ValueError(f"duration_hours must be 1-{MAX_DURATION_HOURS}")
     profile = ACTIVITY_PROFILES[activity]
     earliest, latest = hours if hours is not None else (profile.earliest, profile.latest)
-    if not 0 <= earliest < latest <= 24:
+    if not 0 <= earliest < latest <= HOURS_PER_DAY:
         raise ValueError("hours must satisfy 0 <= earliest < latest <= 24")
 
     best: tuple[float, int] | None = None

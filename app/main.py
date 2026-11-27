@@ -10,6 +10,7 @@ from pathlib import Path
 import httpx
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from starlette.datastructures import State
 
 from app import __version__
 from app.ai.client import build_ai_client
@@ -31,6 +32,11 @@ UPSTREAM_TIMEOUT_SECONDS = 8.0
 STALE_AIR_SECONDS = 2 * 60 * 60
 GEO_CACHE_SECONDS = 24 * 60 * 60
 HISTORY_CACHE_SECONDS = 60 * 60
+# Maximum cached entries (one per rounded location or search query)
+AIR_CACHE_SIZE = 500
+GRID_CACHE_SIZE = 200
+HISTORY_CACHE_SIZE = 200
+GEO_CACHE_SIZE = 1000
 
 logger = logging.getLogger(__name__)
 
@@ -46,39 +52,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         async with httpx.AsyncClient(timeout=UPSTREAM_TIMEOUT_SECONDS) as http:
-            state = app.state
-            if not hasattr(state, "air_service"):
-                state.air_service = AirQualityService(
-                    http,
-                    TTLCache[AirData](
-                        ttl=settings.air_cache_ttl_seconds,
-                        max_entries=500,
-                        stale_ttl=STALE_AIR_SECONDS,
-                    ),
-                )
-            if not hasattr(state, "grid_service"):
-                state.grid_service = AirGridService(
-                    http,
-                    TTLCache[list[GridPoint]](
-                        ttl=settings.air_cache_ttl_seconds,
-                        max_entries=200,
-                        stale_ttl=STALE_AIR_SECONDS,
-                    ),
-                )
-            if not hasattr(state, "history_service"):
-                state.history_service = AirHistoryService(
-                    http,
-                    TTLCache[list[HourlyReading]](
-                        ttl=HISTORY_CACHE_SECONDS, max_entries=200, stale_ttl=STALE_AIR_SECONDS
-                    ),
-                )
-            if not hasattr(state, "geocoding_service"):
-                state.geocoding_service = GeocodingService(
-                    http, TTLCache[list[Place]](ttl=GEO_CACHE_SECONDS, max_entries=1000)
-                )
-            if not hasattr(state, "ai"):
-                state.ai = build_ai_client(settings)
-            logger.info("startup ai_enabled=%s", state.ai is not None)
+            _init_services(app.state, http, settings)
+            logger.info("startup ai_enabled=%s", app.state.ai is not None)
             yield
 
     app = FastAPI(
@@ -102,6 +77,38 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")
 
     return app
+
+
+def _init_services(state: State, http: httpx.AsyncClient, settings: Settings) -> None:
+    """Create the shared services, keeping any already set (tests inject fakes)."""
+    air_ttl = settings.air_cache_ttl_seconds
+    if not hasattr(state, "air_service"):
+        state.air_service = AirQualityService(
+            http,
+            TTLCache[AirData](ttl=air_ttl, max_entries=AIR_CACHE_SIZE, stale_ttl=STALE_AIR_SECONDS),
+        )
+    if not hasattr(state, "grid_service"):
+        state.grid_service = AirGridService(
+            http,
+            TTLCache[list[GridPoint]](
+                ttl=air_ttl, max_entries=GRID_CACHE_SIZE, stale_ttl=STALE_AIR_SECONDS
+            ),
+        )
+    if not hasattr(state, "history_service"):
+        state.history_service = AirHistoryService(
+            http,
+            TTLCache[list[HourlyReading]](
+                ttl=HISTORY_CACHE_SECONDS,
+                max_entries=HISTORY_CACHE_SIZE,
+                stale_ttl=STALE_AIR_SECONDS,
+            ),
+        )
+    if not hasattr(state, "geocoding_service"):
+        state.geocoding_service = GeocodingService(
+            http, TTLCache[list[Place]](ttl=GEO_CACHE_SECONDS, max_entries=GEO_CACHE_SIZE)
+        )
+    if not hasattr(state, "ai"):
+        state.ai = build_ai_client(settings)
 
 
 app = create_app()
